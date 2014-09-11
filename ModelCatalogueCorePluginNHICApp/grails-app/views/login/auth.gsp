@@ -3,8 +3,7 @@
     <meta name='layout' content='main'/>
     <title><g:message code="springSecurity.login.title"/></title>
     <asset:stylesheet href="metaDataCurator.css"/>
-    <asset:javascript src="loginApp.js"/>
-</head>
+ </head>
 
 <body>
 
