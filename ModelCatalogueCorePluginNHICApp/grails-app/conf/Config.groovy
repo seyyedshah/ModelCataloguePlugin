@@ -1,0 +1,285 @@
+import org.modelcatalogue.core.Asset
+import org.modelcatalogue.core.CatalogueElement
+import org.modelcatalogue.core.ValueDomain
+
+// locations to search for config files that get merged into the main config;
+// config files can be ConfigSlurper scripts, Java properties files, or classes
+// in the classpath in ConfigSlurper format
+
+// grails.config.locations = [ "classpath:${appName}-config.properties",
+//                             "classpath:${appName}-config.groovy",
+//                             "file:${userHome}/.grails/${appName}-config.properties",
+//                             "file:${userHome}/.grails/${appName}-config.groovy"]
+
+// if (System.properties["${appName}.config.location"]) {
+//    grails.config.locations << "file:" + System.properties["${appName}.config.location"]
+// }
+
+grails.project.groupId = appName // change this to alter the default package name and Maven publishing destination
+
+// The ACCEPT header will not be used for content negotiation for user agents containing the following strings (defaults to the 4 major rendering engines)
+grails.mime.disable.accept.header.userAgents = ['Gecko', 'WebKit', 'Presto', 'Trident']
+grails.mime.types = [ // the first one is the default format
+		atom: 'application/atom+xml',
+		css: 'text/css',
+		csv: 'text/csv',
+		form: 'application/x-www-form-urlencoded',
+		html: ['text/html', 'application/xhtml+xml'],
+		js: 'text/javascript',
+		json: ['application/json', 'text/json'],
+		multipartForm: 'multipart/form-data',
+		rss: 'application/rss+xml',
+		text: 'text/plain',
+		hal: ['application/hal+json', 'application/hal+xml'],
+		xml: ['text/xml', 'application/xml'],
+		xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+		all: '*/*', // 'all' maps to '*' or the first available format in withFormat
+]
+
+// URL Mapping Cache Max Size, defaults to 5000
+//grails.urlmapping.cache.maxsize = 1000
+
+// What URL patterns should be processed by the resources plugin
+grails.resources.adhoc.patterns = ['/images/*', '/css/*', '/js/*', '/plugins/*']
+
+// Legacy setting for codec used to encode data with ${}
+grails.views.default.codec = "html"
+
+// The default scope for controllers. May be prototype, session or singleton.
+// If unspecified, controllers are prototype scoped.
+grails.controllers.defaultScope = 'singleton'
+
+// GSP settings
+grails {
+	views {
+		gsp {
+			encoding = 'UTF-8'
+			htmlcodec = 'xml' // use xml escaping instead of HTML4 escaping
+			codecs {
+				expression = 'html' // escapes values inside ${}
+				scriptlet = 'html' // escapes output from scriptlets in GSPs
+				taglib = 'none' // escapes output from taglibs
+				staticparts = 'none' // escapes output from static template parts
+			}
+		}
+		// escapes all not-encoded output at final stage of outputting
+		filteringCodecForContentType {
+			//'text/html' = 'html'
+		}
+	}
+}
+
+grails.converters.encoding = "UTF-8"
+// scaffolding templates configuration
+grails.scaffolding.templates.domainSuffix = 'Instance'
+
+// Set to false to use the new Grails 1.2 JSONBuilder in the render method
+grails.json.legacy.builder = false
+// enabled native2ascii conversion of i18n properties files
+grails.enable.native2ascii = true
+// packages to include in Spring bean scanning
+grails.spring.bean.packages = []
+// whether to disable processing of multi part requests
+grails.web.disable.multipart = false
+
+// request parameters to mask when logging exceptions
+grails.exceptionresolver.params.exclude = ['password']
+
+// configure auto-caching of queries by default (if false you can cache individual queries with 'cache: true')
+grails.hibernate.cache.queries = false
+
+environments {
+	development {
+		grails.logging.jul.usebridge = true
+
+		//disable mail send functionality
+		grails.mail.disabled = true
+	}
+	production {
+		grails.logging.jul.usebridge = false
+		mail {
+			host = System.env.MC_MAIL_HOST ?: 'smtp.gmail.com'
+			port = System.env.MC_MAIL_PORT ?: 587
+			username = System.env.MC_MAIL_USER ?: ''
+			password = System.env.MC_MAIL_PASS ?: ''
+
+			props = ["mail.smtp.auth": "true",
+					"mail.smtp.socketFactory.port": "465",
+					"mail.smtp.socketFactory.class": "javax.net.ssl.SSLSocketFactory",
+					"mail.smtp.socketFactory.fallback": "false"]
+		}
+	}
+}
+
+// log4j configuration
+log4j = {
+	// Example of changing the log pattern for the default console appender:
+	//
+	//appenders {
+	//    console name:'stdout', layout:pattern(conversionPattern: '%c{2} %m%n')
+	//}
+
+//    debug 'org.modelcatalogue'
+//    debug 'org.codehaus.groovy.grails.web.mapping'
+//    debug 'org.springframework.security'
+//    debug 'org.grails.plugins.elasticsearch'
+
+	error 'org.codehaus.groovy.grails.web.servlet',        // controllers
+			'org.codehaus.groovy.grails.web.pages',          // GSP
+			'org.codehaus.groovy.grails.web.sitemesh',       // layouts
+			'org.codehaus.groovy.grails.web.mapping.filter', // URL mapping
+			'org.codehaus.groovy.grails.web.mapping',        // URL mapping
+			'org.codehaus.groovy.grails.commons',            // core / classloading
+			'org.codehaus.groovy.grails.plugins',            // plugins
+			'org.codehaus.groovy.grails.orm.hibernate',      // hibernate integration
+			'org.springframework',
+			'org.hibernate',
+			'net.sf.ehcache.hibernate'
+}
+grails.views.gsp.encoding = "UTF-8"
+
+elasticSearch.client.mode = 'local'
+elasticSearch.index.store.type = 'memory' // store local node in memory and not on disk
+elasticSearch.datastoreImpl = 'hibernateDatastore'
+
+
+modelcatalogue.defaults.datatypes = [
+		[name: "String", description: "java.lang.String"],
+		[name: "Integer", description: "java.lang.Integer"],
+		[name: "Double", description: "java.lang.Double"],
+		[name: "Boolean", description: "java.lang.Boolean"],
+		[name: "Date", description: "java.util.Date"],
+		[name: "Time", description: "java.sql.Time"],
+		[name: "Currency", description: "java.util.Currency"]
+]
+
+
+modelcatalogue.defaults.measurementunits = [
+		[name: "celsius", description: "degrees celsius", symbol: "°C"],
+		[name: "fahrenheit", description: "degrees fahrenheit", symbol: "°F"],
+		[name: "newtons", description: "measurement of force", symbol: "N"],
+		[name: 'meter', description: 'length', symbol: 'm'],
+		[name: 'kilogram', description: 'mass', symbol: 'kg'],
+		[name: 'second', description: 'time', symbol: 's'],
+		[name: 'ampere', description: 'electric current', symbol: 'A'],
+		[name: 'kelvin', description: 'thermodynamic temperature', symbol: 'K'],
+		[name: 'mole', description: 'amount of substance', symbol: 'mol'],
+		[name: 'candela', description: 'luminous intensity', symbol: 'cd'],
+		[name: 'area', description: 'square meter', symbol: 'm2'],
+		[name: 'volume', description: 'cubic meter', symbol: 'm3'],
+		[name: 'speed, velocity', description: 'meter per second', symbol: 'm/s'],
+		[name: 'acceleration', description: 'meter per second squared  ', symbol: 'm/s2'],
+		[name: 'wave number', description: 'reciprocal meter', symbol: 'm-1'],
+		[name: 'mass density', description: 'kilogram per cubic meter', symbol: 'kg/m3'],
+		[name: 'specific volume', description: 'cubic meter per kilogram', symbol: 'm3/kg'],
+		[name: 'current density', description: 'ampere per square meter', symbol: 'A/m2'],
+		[name: 'magnetic field strength  ', description: 'ampere per meter', symbol: 'A/m'],
+		[name: 'amount-of-substance concentration', description: 'mole per cubic meter', symbol: 'mol/m3'],
+		[name: 'luminance', description: 'candela per square meter', symbol: 'cd/m2'],
+		[name: 'mass fraction', description: 'kilogram per kilogram', symbol: 'kg/kg = 1']
+]
+
+
+modelcatalogue.defaults.relationshiptypes = [
+		[name: "containment", sourceToDestination: "contains", destinationToSource: "contained in", sourceClass: Model, destinationClass: DataElement, metadataHints: "Source Min Occurs, Source Max Occurs, Destination Min Occurs, Destination Max Occurs", rule: '''
+            Integer sourceMinOccurs = ext['Source Min Occurs'] as Integer
+            Integer sourceMaxOccurs = ext['Source Max Occurs'] as Integer
+            Integer destinationMinOccurs = ext['Destination Min Occurs'] as Integer
+            Integer destinationMaxOccurs = ext['Destination Max Occurs'] as Integer
+
+            if (sourceMinOccurs != null) {
+                if (sourceMinOccurs < 0) {
+                    return false
+                }
+                if (sourceMaxOccurs != null && sourceMaxOccurs < sourceMinOccurs) {
+                    return false
+                }
+            } else {
+                if (sourceMaxOccurs != null && sourceMaxOccurs < 1) {
+                    return false
+                }
+            }
+
+            if (destinationMinOccurs != null) {
+                if (destinationMinOccurs < 0) {
+                    return false
+                }
+                if (destinationMaxOccurs != null && destinationMaxOccurs < destinationMinOccurs) {
+                    return false
+                }
+            } else {
+                if (destinationMaxOccurs != null && destinationMaxOccurs < 1) {
+                    return false
+                }
+            }
+
+            return true
+        '''],
+		[name: 'base', sourceToDestination: 'based on', destinationToSource: 'is base for', sourceClass: ValueDomain, destinationClass: ValueDomain],
+		[name: "attachment", sourceToDestination: "attachments", destinationToSource: "owners", sourceClass: CatalogueElement, destinationClass: Asset],
+		[name: "context", sourceToDestination: "provides context for", destinationToSource: "has context of", sourceClass: ConceptualDomain, destinationClass: Model],
+		[name: "hierarchy", sourceToDestination: "parent of", destinationToSource: "child of", sourceClass: Model, destinationClass: Model],
+		[name: "supersession", sourceToDestination: "superseded by", destinationToSource: "supersedes", sourceClass: PublishedElement, destinationClass: PublishedElement, rule: "source.class == destination.class", system: true],
+		[name: "synonym", sourceToDestination: "is synonym for", destinationToSource: "is synonym for", sourceClass: CatalogueElement, destinationClass: CatalogueElement, bidirectional: true],
+		[name: "union", sourceToDestination: "is union of", destinationToSource: "is united in", sourceClass: ValueDomain, destinationClass: ValueDomain]
+]
+
+// configure the default storage
+modelcatalogue.storage.directory = "/tmp/modelcatalogue/storage"
+modelcatalogue.storage.maxSize = 50 * 1024 * 1024
+
+
+grails {
+	plugin {
+		springsecurity {
+			//This will ask server to use HTTPS when accessing login page
+			//after login, communication channel remains in HTTPS as  WE HAVE NOT DEFINED channel status for other pages
+			secureChannel.definition = [
+					'/login': 'REQUIRES_SECURE_CHANNEL',
+					'/login.*': 'REQUIRES_SECURE_CHANNEL',
+					'/login/*': 'REQUIRES_SECURE_CHANNEL',
+			]
+			auth.forceHttps = true
+
+			//But when using a load balancer such as an F5 BIG-IP it's not possible to just check secure/insecure.
+			// In that case you can configure the load balancer to set a request header indicating the current state.
+			//http://grails-plugins.github.io/grails-spring-security-core/guide/channelSecurity.html
+			secureChannel.useHeaderCheckChannelSecurity = true
+			portMapper.httpPort = 80
+			portMapper.httpsPort = 443
+			secureChannel.secureHeaderName = 'X-Forwarded-Proto'
+			secureChannel.secureHeaderValue = 'http'
+			secureChannel.insecureHeaderName = 'X-Forwarded-Proto'
+			secureChannel.insecureHeaderValue = 'https'
+
+
+			userLookup.userDomainClassName = 'org.modelcatalogue.core.testapp.User'
+			userLookup.authorityJoinClassName = 'org.modelcatalogue.core.testapp.UserRole'
+			authority.className = 'org.modelcatalogue.core.testapp.Role'
+			requestMap.className = 'org.modelcatalogue.core.testapp.Requestmap'
+			securityConfigType = 'Requestmap'
+
+			defaultTargetUrl = "/app/"
+		}
+	}
+}
+
+
+
+
+
+
+grails.assets.excludes = ["bootstrap/**/*.less", "jquery/**/*.js", "angular/**/*.js"]
+
+grails.assets.plugin."model-catalogue-core-plugin".excludes = ["bootstrap/**/*.less", "jquery/**/*.js", "angular/**/*.js"]
+grails.assets.plugin."model-catalogue-core-plugin".includes = ["bootstrap.less"]
+
+grails.assets.minifyOptions = [
+		strictSemicolons: false,
+		mangleOptions: [mangle: false, toplevel: false, defines: null, except: null, no_functions: false],
+		genOptions: [indent_start: 0, indent_level: 4, quote_keys: false, space_colon: false, beautify: false, ascii_only: false, inline_script: false]
+]
+
+//grails.assets.bundle=false
+
+grails.assets.minifyJs = true
