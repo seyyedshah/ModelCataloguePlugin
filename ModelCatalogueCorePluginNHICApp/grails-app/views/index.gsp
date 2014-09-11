@@ -2,6 +2,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+
     <title>Model Catalogue NHIC App</title>
     <asset:stylesheet href="metaDataCurator.css"/>
     <asset:javascript src="loginApp.js"/>
@@ -48,6 +49,7 @@
                 <ul class="nav navbar-nav">
                     <li><a href="app/">Dashboard</a></li>
                 </ul>
+
                 <form show-if-logged-in class="navbar-form navbar-right" ng-submit="logout()"
                       ng-controller="logoutCtrl">
                     <button class="btn btn-danger" type="submit"><i class="glyphicon glyphicon-log-out"></i></button>
@@ -70,11 +72,6 @@
                     new pathways, forms, data storage, studies. <b><em>Generate</em></b> better
                 software components
                 </p>
-
-                %{--<form hide-if-logged-in ng-submit="login()" ng-controller="loginCtrl">--}%
-                %{--<button class="btn btn-large btn-primary" type="submit">Login <i class="glyphicon glyphicon-log-in"></i></button>--}%
-                %{--</form>--}%
-
                 <form hide-if-logged-in>
                     <g:link data-placement="bottom" class="btn btn-primary" data-original-title="Logout" rel="tooltip"
                             controller="login" action="auth">Login
@@ -125,7 +122,6 @@
             </div>
         </div>
     </div>
-
 </div>
 
 </body>
