@@ -2,19 +2,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
     <title>Model Catalogue NHIC App</title>
-
-    %{--<!-- example of customization -->--}%
-    %{--<script type="text/ng-template" id="modelcatalogue/core/ui/decoratedList.html">--}%
-    %{--<div>--}%
-    %{--<p ng-hide="list.list">No data</p>--}%
-    %{--<ul>--}%
-    %{--<li ng-repeat="item in list.list">{{item.name}}</li>--}%
-    %{--</ul>--}%
-    %{--</div>--}%
-    %{--</script>--}%
-    %{--<link href="//maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">--}%
     <asset:stylesheet href="metaDataCurator.css"/>
     <asset:javascript src="metaDataCurator.js"/>
     <script type="text/javascript">
@@ -42,12 +30,6 @@
 
 <body>
 <div id="metadataCurator" ng-app="metadataCurator">
-
-    %{--<div ng-controller="metadataCurator.loginCtrl" ng-init="login()">--}%
-    %{--</div>--}%
-
-
-
     <div class="navbar navbar-default navbar-fixed-top" role="navigation">
         <div class="container">
             <div class="navbar-header">
