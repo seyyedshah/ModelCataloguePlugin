@@ -1,0 +1,64 @@
+/**
+  Main application styles. This should just import the appropriate base, layout, module, state and theme files.
+**/
+
+@import "font-awesome/less/font-awesome";
+@import "bootstrap/less/bootstrap";
+// FIXME make relative path
+@icon-font-path: "bootstrap/dist/fonts/";
+
+@import "base/base";
+
+@import "layout/major";
+
+@import "modules/_dashboard";
+
+@import "themes/default";
+
+//@import "vendor/font-awesome/font-awesome";
+
+/** this is a hack for the S2UI plugin. We need to fix the registration page **/
+.s2ui_hidden_button {
+  visibility: hidden;
+}
+
+html,
+body {
+  height: 100%;
+  /* The html and body elements cannot have any padding or margin. */
+}
+
+/* Wrapper for page content to push down footer */
+#wrap {
+  min-height: 100%;
+  height: auto !important;
+  height: 100%;
+  /* Negative indent footer by it's height */
+  margin: 0 auto -60px;
+}
+
+/* Set the fixed height of the footer here */
+#push,
+#footer {
+  height: 60px;
+}
+
+#footer {
+  text-align: center;
+  background-color: #4f687c;
+  border-top: 1px solid #27333d;
+}
+
+/* Lastly, apply responsive CSS fixes as necessary */
+@media (max-width: 767px) {
+  #footer {
+	margin-left: -20px;
+	margin-right: -20px;
+	padding-left: 20px;
+	padding-right: 20px;
+  }
+}
+
+
+
+
