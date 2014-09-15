@@ -1,6 +1,17 @@
+<!DOCTYPE html>
 <html>
 <head>
-<title>Not Found</title>
+    <meta name="layout" content="main"/>
+    <title>Not Found</title>
 </head>
 
-<body> <h1>Not Found</h1> <p>We're sorry, but that page doesn't exist.</p> </body> </html>
+<body>
+
+<div class="container">
+    <div class="row">
+        <h1>Not Found</h1>
+        <p>We're sorry, but that page doesn't exist.</p>
+    </div>
+</div>
+</body>
+</html>
