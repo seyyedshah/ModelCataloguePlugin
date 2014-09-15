@@ -233,11 +233,13 @@ grails {
 	plugin {
 		springsecurity {
 			//This will ask server to use HTTPS when accessing login page
+			// '/login': 'REQUIRES_SECURE_CHANNEL',
+			// '/login.*': 'REQUIRES_SECURE_CHANNEL',
+			// '/login/*': 'REQUIRES_SECURE_CHANNEL',
 			//after login, communication channel remains in HTTPS as  WE HAVE NOT DEFINED channel status for other pages
+			//BUT as it is a single page app, so the first app should be a secure one
 			secureChannel.definition = [
-					'/login': 'REQUIRES_SECURE_CHANNEL',
-					'/login.*': 'REQUIRES_SECURE_CHANNEL',
-					'/login/*': 'REQUIRES_SECURE_CHANNEL',
+					'/': 'REQUIRES_SECURE_CHANNEL'
 			]
 			auth.forceHttps = true
 
