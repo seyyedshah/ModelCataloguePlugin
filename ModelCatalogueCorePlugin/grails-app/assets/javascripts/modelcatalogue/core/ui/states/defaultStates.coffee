@@ -473,7 +473,6 @@ angular.module('mc.core.ui.states.defaultStates', ['ui.router', 'mc.util.ui'])
 
       <form ng-submit="login()" ng-controller="metadataCurator.loginCtrl">
          <button class="btn btn-large btn-primary" type="submit">Login <i class="glyphicon glyphicon-log-in"></i></button>
-         <a href="" class="btn btn-large btn-primary" >Sign Up <i class="glyphicon glyphicon-pencil"></i></a>
       </form>
     </div>
 
@@ -529,7 +528,7 @@ angular.module('mc.core.ui.states.defaultStates', ['ui.router', 'mc.util.ui'])
                                 </div>
                             </div>
 
-                            <a href="#" show-for-role="ADMIN">
+                            <a href="#" show-for-role="CURATOR">
                                 <div class="panel-footer">
                                     <span class="pull-left" ng-click="createClassification()">Create New Data Set</span>
                                     <span class="pull-right"><i class="fa fa-magic"></i></span>
@@ -552,7 +551,7 @@ angular.module('mc.core.ui.states.defaultStates', ['ui.router', 'mc.util.ui'])
                                     </div>
                                 </div>
                             </div>
-                            <a href="#" show-for-role="ADMIN">
+                            <a href="#" show-for-role="CURATOR">
                                 <div class="panel-footer">
                                     <span class="pull-left" ng-click="createModel()">Create New Model</span>
                                     <span class="pull-right"><i class="fa fa-magic"></i></span>
@@ -575,7 +574,7 @@ angular.module('mc.core.ui.states.defaultStates', ['ui.router', 'mc.util.ui'])
                                     </div>
                                 </div>
                             </div>
-                            <a href="#" show-for-role="ADMIN">
+                            <a href="#" show-for-role="CURATOR">
                                 <div class="panel-footer">
                                     <span class="pull-left">Create Data Elements</span>
                                     <span class="pull-right"><i class="fa fa-magic"></i></span>
@@ -601,7 +600,7 @@ angular.module('mc.core.ui.states.defaultStates', ['ui.router', 'mc.util.ui'])
                                 </div>
                             </div>
 
-                            <a href="#" show-for-role="ADMIN">
+                            <a href="#" show-for-role="CURATOR">
                                 <div class="panel-footer">
                                     <span class="pull-left">Create New Batch</span>
                                     <span class="pull-right"><i class="fa fa-magic"></i></span>
@@ -624,7 +623,7 @@ angular.module('mc.core.ui.states.defaultStates', ['ui.router', 'mc.util.ui'])
                                     </div>
                                 </div>
                             </div>
-                            <a href="#" show-for-role="ADMIN">
+                            <a href="#" show-for-role="CURATOR">
                                 <div class="panel-footer">
                                     <span class="pull-left">Create New Asset</span>
                                     <span class="pull-right"><i class="fa fa-magic"></i></span>
@@ -645,7 +644,7 @@ angular.module('mc.core.ui.states.defaultStates', ['ui.router', 'mc.util.ui'])
                                     </div>
                                 </div>
                             </div>
-                            <a href="#" show-for-role="ADMIN">
+                            <a href="#" show-for-role="CURATOR">
                                 <div class="panel-footer">
                                     <span class="pull-left">Create Relationships</span>
                                     <span class="pull-right"><i class="fa fa-magic"s></i></span>
@@ -669,7 +668,7 @@ angular.module('mc.core.ui.states.defaultStates', ['ui.router', 'mc.util.ui'])
                                 </div>
                             </div>
 
-                            <a href="#" show-for-role="ADMIN">
+                            <a href="#" show-for-role="CURATOR">
                                 <div class="panel-footer">
                                     <span class="pull-left">Create New Value Domain</span>
                                     <span class="pull-right"><i class="fa fa-magic"></i></span>
@@ -690,7 +689,7 @@ angular.module('mc.core.ui.states.defaultStates', ['ui.router', 'mc.util.ui'])
                                     </div>
                                 </div>
                             </div>
-                            <a href="#" show-for-role="ADMIN">
+                            <a href="#" show-for-role="CURATOR">
                                 <div class="panel-footer">
                                     <span class="pull-left" >Create New Data Type</span>
                                     <span class="pull-right"><i class="fa fa-money"></i></span>
@@ -711,7 +710,7 @@ angular.module('mc.core.ui.states.defaultStates', ['ui.router', 'mc.util.ui'])
                                     </div>
                                 </div>
                             </div>
-                            <a href="#" show-for-role="ADMIN">
+                            <a href="#" show-for-role="CURATOR">
                                 <div class="panel-footer">
                                     <span class="pull-left">Create Measurement Unit</span>
                                     <span class="pull-right"><i class="fa fa-magic"></i></span>
