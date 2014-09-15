@@ -12,7 +12,6 @@ angular.module('mc.core.ui.states.defaultStates', ['ui.router', 'mc.util.ui'])
       )
 
     $rootScope.$on('userLoggedIn', (ignored, user) ->
-      debugger
       if(!user.data.error) then updateDashboard(user.data.displayName)
     )
 
