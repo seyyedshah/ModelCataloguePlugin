@@ -15,6 +15,7 @@
 #= require modelcatalogue/core/ui/index
 #= require modelcatalogue/core/ui/states/index
 #= require modelcatalogue/core/ui/bs/index
+#= require modalPromptChangePassword
 
 @grailsAppName = 'model_catalogue'
 
@@ -24,7 +25,8 @@ metadataCurator = angular.module('metadataCurator', [
   'mc.core.ui.states'
   'ui.bootstrap'
   'angular-loading-bar'
-  'ngAnimate'
+  'ngAnimate',
+  'mc.core.ui.bs.modalPromptChangePassword',
 ])
 
 metadataCurator.config ['$stateProvider', '$urlRouterProvider', ($stateProvider, $urlRouterProvider)->
@@ -140,4 +142,13 @@ metadataCurator.controller('metadataCurator.logoutCtrl', ['$scope', 'security', 
 metadataCurator.controller('metadataCurator.loginCtrl', ['security', '$scope', (security, $scope)->
   $scope.login = ->
     security.requireLogin()
+])
+
+
+metadataCurator.controller('metadataCurator.changePasswordCtrl', ['messages', '$scope', (messages, $scope)->
+  $scope.changePassword = ->
+    messages.prompt('change-password', null, type: 'change-password').then (success)->
+      debugger
+    , ->
+      debugger
 ])
