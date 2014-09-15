@@ -26,7 +26,7 @@ metadataCurator = angular.module('metadataCurator', [
   'ui.bootstrap'
   'angular-loading-bar'
   'ngAnimate',
-  'mc.core.ui.bs.modalPromptChangePassword',
+  'mc.core.ui.bs.modalPromptChangePassword'
 ])
 
 metadataCurator.config ['$stateProvider', '$urlRouterProvider', ($stateProvider, $urlRouterProvider)->
@@ -36,7 +36,7 @@ metadataCurator.config ['$stateProvider', '$urlRouterProvider', ($stateProvider,
 metadataCurator.run ['$templateCache', ($templateCache) ->
   $templateCache.put 'modelcatalogue/core/ui/omnisearchItem.html', '''
   <a>
-      <span class="glyphicon omnisearch-icon" ng-class="'glyphicon-' + match.model.icon"></span>
+      <span class="omnisearch-icon" ng-class="match.model.icon"></span>
       <span ng-if="!match.model.highlight" bind-html-unsafe="match.label"></span>
       <span ng-if=" match.model.highlight" bind-html-unsafe="match.label | typeaheadHighlight:query"></span>
   </a>
@@ -67,9 +67,9 @@ metadataCurator.controller('metadataCurator.searchCtrl',
             "Search <strong>Catalogue Element</strong> for <strong>#{term}</strong>"
 
           action: (term) -> ->
-              $state.go('mc.search', {q: term})
+            $state.go('mc.search', {q: term})
 
-          icon: 'search'
+          icon: 'glyphicon glyphicon-search'
         }
 
         actions.push {
@@ -80,7 +80,7 @@ metadataCurator.controller('metadataCurator.searchCtrl',
           action: (term) ->
             ->
               $state.go('mc.resource.list', {q: term})
-          icon: 'search'
+          icon: 'glyphicon glyphicon-search'
         }
 
         actions.push {
@@ -90,7 +90,7 @@ metadataCurator.controller('metadataCurator.searchCtrl',
           action: (term) ->
             ->
               $state.go('mc.resource.show.property', {q: term})
-          icon: 'search'
+          icon: 'glyphicon glyphicon-search'
         }
 
       $scope.getResults = (term) ->
@@ -116,7 +116,7 @@ metadataCurator.controller('metadataCurator.searchCtrl',
               results.push {
                 label:      if searchResult.getLabel then searchResult.getLabel() else searchResult.name
                 action:     searchResult.show
-                icon:       'file'
+                icon:       if searchResult.getIcon  then searchResult.getIcon()  else 'glyphicon glyphicon-file'
                 term:       term
                 highlight:  true
               }
@@ -134,12 +134,9 @@ metadataCurator.controller('metadataCurator.searchCtrl',
 
   ])
 
-metadataCurator.controller('metadataCurator.logoutCtrl', ['$scope', 'security', ($scope, security)->
+metadataCurator.controller('metadataCurator.userCtrl', ['$scope', 'security', ($scope, security)->
   $scope.logout = ->
     security.logout()
-])
-
-metadataCurator.controller('metadataCurator.loginCtrl', ['security', '$scope', (security, $scope)->
   $scope.login = ->
     security.requireLogin()
 ])
@@ -147,8 +144,9 @@ metadataCurator.controller('metadataCurator.loginCtrl', ['security', '$scope', (
 
 metadataCurator.controller('metadataCurator.changePasswordCtrl', ['messages', '$scope', (messages, $scope)->
   $scope.changePassword = ->
-    messages.prompt('change-password', null, type: 'change-password').then (success)->
-      debugger
-    , ->
-      debugger
+    messages.prompt('change-password', null, type: 'change-password')
+#    .then (success)->
+#      debugger
+#    , ->
+#      debugger
 ])

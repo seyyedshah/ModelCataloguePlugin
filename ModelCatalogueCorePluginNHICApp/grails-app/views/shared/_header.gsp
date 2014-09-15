@@ -36,7 +36,7 @@
 <body ng-app="metadataCurator">
 
 <g:if test="${request.queryString?.contains('login')}">
-    <div ng-init="login()"  ng-controller="metadataCurator.loginCtrl"></div>
+    <div ng-init="login()"  ng-controller="metadataCurator.userCtrl"></div>
 </g:if>
 
 <div id="wrap">
@@ -150,13 +150,13 @@
                 </ul>
 
                 <form show-if-logged-in class="navbar-form navbar-right" ng-submit="logout()"
-                      ng-controller="metadataCurator.logoutCtrl">
+                      ng-controller="metadataCurator.userCtrl">
                     <button class="btn btn-danger" type="submit"><i class="glyphicon glyphicon-log-out"></i>
                     </button>
                 </form>
 
                 <form hide-if-logged-in class="navbar-form navbar-right" ng-submit="login()"
-                      ng-controller="metadataCurator.loginCtrl">
+                      ng-controller="metadataCurator.userCtrl">
                     <button class="btn btn-primary" type="submit"><i class="glyphicon glyphicon-log-in"></i>
                     </button>
                 </form>
