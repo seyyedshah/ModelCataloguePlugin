@@ -1,5 +1,6 @@
 package org.modelcatalogue.core.testapp
 
+import grails.converters.JSON
 import grails.plugin.springsecurity.SpringSecurityUtils
 import grails.plugin.springsecurity.authentication.dao.NullSaltSource
 import grails.plugin.springsecurity.ui.RegistrationCode
@@ -7,7 +8,7 @@ import grails.plugin.springsecurity.ui.RegistrationCode
 class RegisterController extends grails.plugin.springsecurity.ui.RegisterController {
 
 
-
+	def messageSource
 
 
 	/**
@@ -96,15 +97,20 @@ class RegisterController extends grails.plugin.springsecurity.ui.RegisterControl
 			return
 		}
 
-		if (!request.post) {
-			return [command: new ResetPasswordCommand()]
-		}
-
+		def msg
 		command.username = user.username
 		command.validate()
 		if (command.hasErrors()) {
-			return [command: command]
+			command.errors?.allErrors?.each{
+				//get the error message from the validation code
+				msg =  messageSource.getMessage(it, null)
+			};
+
+			//has error, so return the error message as JSON
+			render([success: false, error:msg] as JSON)
+			return
 		}
+
 
 		String salt = saltSource instanceof NullSaltSource ? null : user.username
 		user.password = springSecurityUiService.encodePassword(command.password, salt)
@@ -115,12 +121,8 @@ class RegisterController extends grails.plugin.springsecurity.ui.RegisterControl
 		//successfully changed so return
 		command.password = null
 		command.password2 = null
-		flash.success = "Your password has been successfully updated."
-		return [command: command]
-
-//		def conf = SpringSecurityUtils.securityConfig
-//		String postResetUrl = conf.ui.register.postResetUrl ?: conf.successHandler.defaultTargetUrl
-//		redirect uri: postResetUrl
+		render([success: true] as JSON)
+		return
 	}
 
 	static boolean checkPasswordMinLength(String password, command) {
@@ -194,8 +196,4 @@ class ResetPasswordCommand {
 		password blank: false, nullable: false, validator: org.modelcatalogue.core.testapp.RegisterController.betterPasswordValidator
 		password2 validator: org.modelcatalogue.core.testapp.RegisterController.password2Validator
 	}
-
-
-
-
 }
