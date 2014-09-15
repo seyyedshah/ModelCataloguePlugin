@@ -7,12 +7,12 @@ import org.modelcatalogue.core.pages.ModalTreeViewPage
 
 class BatchAndActionsSpec extends GebSpec {
 
+
     def "execute few actions"() {
         when:
         go "#/catalogue/model/all"
 
         then:
-        title == "Models"
         at ModalTreeViewPage
         waitFor {
             viewTitle.displayed

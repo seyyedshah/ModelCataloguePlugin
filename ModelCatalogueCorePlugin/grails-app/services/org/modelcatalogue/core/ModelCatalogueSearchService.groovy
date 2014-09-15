@@ -1,6 +1,7 @@
 package org.modelcatalogue.core
 
 import grails.gorm.DetachedCriteria
+import org.modelcatalogue.core.util.Lists
 import org.modelcatalogue.core.util.RelationshipDirection
 
 /**
@@ -63,19 +64,53 @@ class ModelCatalogueSearchService implements SearchCatalogue {
         String query = "%$params.search%"
 
         if (PublishedElement.isAssignableFrom(resource)) {
+            String alias = resource.simpleName[0].toLowerCase()
+            String listQuery = """
+                from ${resource.simpleName} ${alias}
+                where
+                    ${alias}.status in :statuses
+                    and (
+                        lower(${alias}.name) like lower(:query)
+                        or lower(${alias}.description) like lower(:query)
+                        or lower(${alias}.modelCatalogueId) like lower(:query)
+                        or ${alias} in (select ev.element from ExtensionValue ev where lower(ev.extensionValue) like lower(:query))
+                    )
+            """
+
+            def results = Lists.fromQuery(params, resource, listQuery, [
+                    query: query,
+                    statuses: [PublishedElementStatus.DRAFT, PublishedElementStatus.PENDING, PublishedElementStatus.UPDATED, PublishedElementStatus.FINALIZED]
+            ])
+
+
+            searchResults.searchResults = results.items
+            searchResults.total = results.total
+        } else if (ExtendibleElement.isAssignableFrom(resource)) {
+            String alias = resource.simpleName[0].toLowerCase()
+            String listQuery = """
+                from ${resource.simpleName} ${alias}
+                where
+                    lower(${alias}.name) like lower(:query)
+                    or lower(${alias}.description) like lower(:query)
+                    or lower(${alias}.modelCatalogueId) like lower(:query)
+                    or ${alias} in (select ev.element from ExtensionValue ev where lower(ev.extensionValue) like lower(:query))
+            """
+
+            def results = Lists.fromQuery(params, resource, listQuery, [
+                    query: query
+            ])
+
+            searchResults.searchResults = results.items
+            searchResults.total = results.total
+        } else if (CatalogueElement.isAssignableFrom(resource)) {
             DetachedCriteria criteria = new DetachedCriteria(resource)
-            criteria.and {
-                'in'('status', PublishedElementStatus.DRAFT, PublishedElementStatus.PENDING, PublishedElementStatus.UPDATED, PublishedElementStatus.FINALIZED)
-                or {
-                    ilike('name', query)
-                    ilike('description', query)
-                }
+            criteria.or {
+                ilike('name', query)
+                ilike('description', query)
+                ilike('modelCatalogueId', query)
             }
             searchResults.searchResults = criteria.list(params)
             searchResults.total = criteria.count()
-        } else if (CatalogueElement.isAssignableFrom(resource)) {
-            searchResults.searchResults = resource.findAllByNameIlikeOrDescriptionIlike(query, query, params)
-            searchResults.total = resource.countByNameIlikeOrDescriptionIlike(query, query, params)
         } else if (RelationshipType.isAssignableFrom(resource)) {
             searchResults.searchResults = resource.findAllByNameIlikeOrSourceToDestinationIlikeOrDestinationToSourceIlike(query, query, query, params)
             searchResults.total = resource.countByNameIlikeOrSourceToDestinationIlikeOrDestinationToSourceIlike(query, query, query, params)

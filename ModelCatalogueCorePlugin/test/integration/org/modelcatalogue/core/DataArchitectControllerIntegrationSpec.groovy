@@ -2,6 +2,7 @@ package org.modelcatalogue.core
 
 import grails.util.GrailsNameUtils
 import groovy.util.slurpersupport.GPathResult
+import org.codehaus.groovy.grails.plugins.testing.GrailsMockMultipartFile
 import org.codehaus.groovy.grails.web.json.JSONElement
 import org.modelcatalogue.core.util.DefaultResultRecorder
 import org.modelcatalogue.core.util.ListWithTotal
@@ -21,7 +22,7 @@ def setupSpec(){
     //domainModellerService.modelDomains()
     loadFixtures()
     de1 = DataElement.findByName("DE_author")
-    de2 = DataElement.findByName("auth7")
+    de2 = DataElement.findByName("auth")
     de3 = DataElement.findByName("AUTHOR")
     de4 = DataElement.findByName("auth4")
     de5 = DataElement.findByName("auth5")
@@ -122,12 +123,12 @@ def "json -  get uninstantiated data elements from the catalogue"(){
     then:
 
     json.success
-    json.total == 11
+    json.total == 8
     json.offset == 0
     json.page == 10
     json.list
-    json.list.size() == 10
-    json.next == "/dataArchitect/uninstantiatedDataElements?max=10&offset=10"
+    json.list.size() == 8
+    json.next == ""
     json.previous == ""
 
 
@@ -278,5 +279,35 @@ def "xml -  create dataElement relationships"(){
     //xml.next.text() == "/dataArchitect/metadataKeyCheck?max=10&key=metadata&offset=10"
     xml.previous.text() == ""
 }
+
+    def "find some elements and return just string for not found from elementsFromCSV"(){
+        def controller = new DataArchitectController()
+        ResultRecorder recorder = DefaultResultRecorder.create(
+                "../ModelCatalogueCorePlugin/target/xml-samples/modelcatalogue/core",
+                "../ModelCatalogueCorePlugin/test/js/modelcatalogue/core",
+                "dataArchitect"
+        )
+
+
+        GrailsMockMultipartFile mockFile = new GrailsMockMultipartFile('csv', 'headers.txt', 'text/plain', 'DE AUTHOR;speed of vauxhall;speed of opel;whatever'.bytes)
+
+        when:
+        controller.request.addFile mockFile
+        controller.response.format = "json"
+        controller.params.put("separator", ";")
+        controller.elementsFromCSV()
+        JSONElement json = controller.response.json
+        recorder.recordResult "elementsFromCSV", json
+
+        then:
+
+        json.size() == 4
+        !(json[0] instanceof String)
+        !(json[1] instanceof String)
+        !(json[2] instanceof String)
+          json[3] instanceof String
+
+
+    }
 
 }

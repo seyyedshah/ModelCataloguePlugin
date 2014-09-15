@@ -15,7 +15,7 @@ class SmokeSpec extends GebSpec {
             viewTitle.displayed
         }
         viewTitle.text().trim()     == 'Models'
-        subviewTitle.text().trim()  == 'NHIC Datasets Data Elements'
+        subviewTitle.text().trim()  == 'NHIC Datasets'
 
         when:
         loginAdmin()
@@ -40,12 +40,11 @@ class SmokeSpec extends GebSpec {
 
         saveButton.click()
 
-        waitFor {
-            $('blockquote').displayed
-        }
 
         then:
-        $('blockquote').text() == "Description"
+        waitFor {
+            $('div.messages-panel span', text: "Model New created").displayed
+        }
 
     }
 

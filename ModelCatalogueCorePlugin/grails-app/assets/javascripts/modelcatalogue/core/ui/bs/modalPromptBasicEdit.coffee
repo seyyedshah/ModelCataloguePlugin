@@ -13,7 +13,7 @@ angular.module('mc.core.ui.bs.modalPromptBasicEdit', ['mc.util.messages', 'mc.co
         </div>
         <div class="modal-body">
             <messages-panel messages="messages"></messages-panel>
-            <form role="form">
+            <form role="form" ng-submit="saveElement()">
               <div class="form-group">
                 <label for="name" class="">Name</label>
                 <input type="text" class="form-control" id="name" placeholder="Name" ng-model="copy.name">
@@ -46,7 +46,6 @@ angular.module('mc.core.ui.bs.modalPromptBasicEdit', ['mc.util.messages', 'mc.co
       dialog.result
   ]
 
-  messagesProvider.setPromptFactory 'edit-dataType', factory
   messagesProvider.setPromptFactory 'edit-conceptualDomain', factory
   messagesProvider.setPromptFactory 'edit-classification', factory
   messagesProvider.setPromptFactory 'edit-batch', factory

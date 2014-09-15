@@ -48,7 +48,7 @@ class PublishedElementServiceIntegrationSpec extends AbstractIntegrationSpec {
 
 
     def "create new version"() {
-        DataElement author      = DataElement.findByName('auth8')
+        DataElement author      = DataElement.findByName('auth5')
         ValueDomain domain      = ValueDomain.findByName('value domain test1')
 
 
@@ -91,7 +91,7 @@ class PublishedElementServiceIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     def "archive"() {
-        DataElement author      = DataElement.findByName('auth8')
+        DataElement author      = DataElement.findByName('auth5')
         ValueDomain domain      = ValueDomain.findByName('value domain test1')
 
 
@@ -132,7 +132,7 @@ class PublishedElementServiceIntegrationSpec extends AbstractIntegrationSpec {
         int archivedVersion     = archived.versionNumber
         int newVersion          = md2.versionNumber
 
-        def archivedrel = relationshipService.getRelationships([:], RelationshipDirection.BOTH, archived, RelationshipType.hierarchyType).list
+        def archivedrel = relationshipService.getRelationships([:], RelationshipDirection.BOTH, archived, RelationshipType.hierarchyType).items
 
         expect:
         md2 != archived

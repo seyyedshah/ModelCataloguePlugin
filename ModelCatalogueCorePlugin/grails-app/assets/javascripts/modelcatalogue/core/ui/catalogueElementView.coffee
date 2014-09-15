@@ -42,7 +42,11 @@ angular.module('mc.core.ui.catalogueElementView', ['mc.core.catalogueElementEnha
             if $state.params.q
               promise = tab.loader 'search', {search: $state.params.q}
             else
-              promise = tab.loader()
+              if not tab.promise
+                promise = tab.loader()
+                tab.promise = promise
+              else
+                promise = tab.promise
           else
             promise = $q.when tab.value
 
@@ -91,7 +95,8 @@ angular.module('mc.core.ui.catalogueElementView', ['mc.core.catalogueElementEnha
         options.location = "replace" if newProperty and not oldProperty
         $state.go 'mc.resource.show.property', {resource: names.getPropertyNameFromType($scope.element.elementType), id: $scope.element.id, property: newProperty, page: page, q: $state.params.q}, options if $scope.element
 
-      onElementUpdate = (element) ->
+      onElementUpdate = (element, oldEl) ->
+        return if angular.equals element, oldEl
         applicationTitle "#{$scope.element.getLabel()}"
 
         resource = catalogueElementResource(element.elementType) if element and element.elementType
@@ -137,13 +142,13 @@ angular.module('mc.core.ui.catalogueElementView', ['mc.core.catalogueElementEnha
               type:   'danger'
               action: (rel) ->
                 deferred = $q.defer()
-                messages.confirm('Removing Relationship', "Do you really want to remove relation '#{element.name} #{rel.type[rel.direction]} #{rel.relation.name}'?").then () ->
+                messages.confirm('Remove Relationship', "Do you really want to remove relation '#{element.name} #{rel.type[rel.direction]} #{rel.relation.name}'?").then () ->
                     rel.remove().then ->
                       messages.success('Relationship removed!', "#{rel.relation.name} is no longer related to #{element.name}")
                       # reloads the table
                       deferred.resolve(true)
                     , (response) ->
-                      if response.data.errors
+                      if response.data?.errors
                         if angular.isString response.data.errors
                           messages.error response.data.errors
                         else
@@ -157,6 +162,43 @@ angular.module('mc.core.ui.catalogueElementView', ['mc.core.catalogueElementEnha
 
                 deferred.promise
             }
+
+          if fn.itemType == 'org.modelcatalogue.core.Mapping' and security.hasRole('CURATOR')
+            tabDefinition.actions.push {
+              icon:   'edit'
+              type:   'primary'
+              action: (mapping) ->
+                args = {type: 'new-mapping', update: true, element: element, mapping: mapping}
+                messages.prompt('Update Mapping', '', args).then (updated)->
+                  angular.extend mapping, updated
+            }
+            tabDefinition.actions.push {
+              icon:   'remove'
+              type:   'danger'
+              action: (mapping) ->
+                deferred = $q.defer()
+                messages.confirm('Remove Mapping', "Do you really want to remove mapping from #{element.name} to #{mapping.destination.name}?").then ->
+                    element.mappings.remove(mapping.destination.id, {}).then ->
+                      messages.success('Mapping removed!', "#{mapping.destination.name} is no longer related to #{element.name}")
+                      # reloads the table
+                      deferred.resolve(true)
+                    , (response) ->
+                      if response.data?.errors
+                        if angular.isString response.data.errors
+                          messages.error response.data.errors
+                        else
+                          for err in response.data.errors
+                            messages.error err.message
+                      else if response.status == 404
+                        messages.error('Error removing mapping', 'Mapping cannot be removed, it probably does not exist anymore. The table was refreshed to get the most up to date results.')
+                        deferred.resolve(true)
+                      else
+                        messages.error('Error removing mapping', 'Mapping cannot be removed, see application logs for details')
+
+                deferred.promise
+            }
+
+
 
           if tabDefinition.name == $scope.property
             tabDefinition.active = true
@@ -280,10 +322,6 @@ angular.module('mc.core.ui.catalogueElementView', ['mc.core.catalogueElementEnha
         else
           $state.go '.', {property: tab.name, q: tab.search}
 
-      # watches
-      $scope.$watch 'element', onElementUpdate
-      $scope.$watch 'property', onPropertyUpdate
-
 
       refreshElement = () ->
         if $scope.element
@@ -299,13 +337,14 @@ angular.module('mc.core.ui.catalogueElementView', ['mc.core.catalogueElementEnha
 
       $scope.$on '$stateChangeSuccess', (event, state, params) ->
         return if state.name != 'mc.resource.show.property'
-
         $scope.property = params.property
-
-        loadTab(params.property)
 
       # init
       onElementUpdate($scope.element)
+
+      # watches
+      $scope.$watch 'element', onElementUpdate
+      $scope.$watch 'property', onPropertyUpdate
     ]
   }
 ]

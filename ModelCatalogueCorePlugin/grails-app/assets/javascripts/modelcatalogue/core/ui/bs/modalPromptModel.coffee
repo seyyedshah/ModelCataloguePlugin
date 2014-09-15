@@ -9,13 +9,17 @@ angular.module('mc.core.ui.bs.modalPromptModel', ['mc.util.messages']).config ['
         windowClass: 'basic-edit-modal-prompt'
         resolve:
           args: -> args
+          classificationInUse: ['$stateParams', 'catalogueElementResource',  ($stateParams, catalogueElementResource)->
+            return undefined if not $stateParams.classification
+            catalogueElementResource('classification').get($stateParams.classification)
+          ]
         template: '''
          <div class="modal-header">
             <h4>''' + title + '''</h4>
         </div>
         <div class="modal-body">
             <messages-panel messages="messages"></messages-panel>
-            <form role="form">
+            <form role="form" ng-submit="saveElement()">
               <div class="form-group">
                 <label for="name" class="">Name</label>
                 <input type="text" class="form-control" id="name" placeholder="Name" ng-model="copy.name">
