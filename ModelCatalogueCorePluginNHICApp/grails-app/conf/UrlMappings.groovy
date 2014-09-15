@@ -6,7 +6,6 @@ class UrlMappings {
                 // apply constraints here
             }
 		}
-		"/app"(view:"/app/index")
 		"/register/changePassword"(controller:"register", action: "changePassword")
 		"/login/auth"(view:"/?login=true")
 
