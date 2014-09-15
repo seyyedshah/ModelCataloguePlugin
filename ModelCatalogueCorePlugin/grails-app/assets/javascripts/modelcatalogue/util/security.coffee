@@ -36,6 +36,7 @@ angular.module('mc.util.security', ['http-auth-interceptor', 'mc.util.messages']
       logoutUrl     = 'logout'
       userUrl       = 'login/ajaxSuccess'
       changePasswordUrl = 'register/changePassword'
+      registerUrl ='register/register'
       usernameParam = config.username ? 'j_username'
       passwordParam = config.password ? 'j_password'
       rememberParam = config.rememberMe ? '_spring_security_remember_me'
@@ -105,6 +106,21 @@ angular.module('mc.util.security', ['http-auth-interceptor', 'mc.util.messages']
           ).then (result) ->
             result
 
+
+        register: (user)->
+          params =
+            password: user.password
+            password2:user.password2
+            username:user.username
+            email: user.email
+            firstName:user.firstName
+            lastName:user.lastName
+          $http(
+            method: httpMethod,
+            url: registerUrl
+            data: params
+          ).then (result) ->
+            result
 
       if currentUser
         currentUser.success = true

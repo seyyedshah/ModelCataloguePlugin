@@ -16,6 +16,7 @@
 #= require modelcatalogue/core/ui/states/index
 #= require modelcatalogue/core/ui/bs/index
 #= require modalPromptChangePassword
+#= require modalPromptRegister
 
 @grailsAppName = 'model_catalogue'
 
@@ -26,7 +27,8 @@ metadataCurator = angular.module('metadataCurator', [
   'ui.bootstrap'
   'angular-loading-bar'
   'ngAnimate',
-  'mc.core.ui.bs.modalPromptChangePassword'
+  'mc.core.ui.bs.modalPromptChangePassword',
+  'mc.core.ui.bs.modalPromptRegister'
 ])
 
 metadataCurator.config ['$stateProvider', '$urlRouterProvider', ($stateProvider, $urlRouterProvider)->
@@ -134,11 +136,15 @@ metadataCurator.controller('metadataCurator.searchCtrl',
 
   ])
 
-metadataCurator.controller('metadataCurator.userCtrl', ['$scope', 'security', ($scope, security)->
+metadataCurator.controller('metadataCurator.userCtrl', ['$scope', 'security', 'messages', ($scope, security,messages)->
   $scope.logout = ->
     security.logout()
+
   $scope.login = ->
     security.requireLogin()
+
+  $scope.register = ->
+    messages.prompt('register', null, type: 'register')
 ])
 
 

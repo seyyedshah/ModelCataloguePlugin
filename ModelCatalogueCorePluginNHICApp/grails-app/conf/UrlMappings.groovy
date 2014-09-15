@@ -7,6 +7,7 @@ class UrlMappings {
             }
 		}
 		"/register/changePassword"(controller:"register", action: "changePassword")
+		"/register/register"(controller:"register", action: "register")
 		"/login/auth"(view:"/?login=true")
 
 		"403"(controller: "errors", action: "error403")

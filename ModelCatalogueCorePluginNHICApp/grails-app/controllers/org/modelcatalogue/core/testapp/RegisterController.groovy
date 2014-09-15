@@ -26,8 +26,14 @@ class RegisterController extends grails.plugin.springsecurity.ui.RegisterControl
 	 */
 	def register = { RegisterCommand command ->
 
+		def msg
 		if (command.hasErrors()) {
-			render view: 'index', model: [command: command]
+			command.errors?.allErrors?.each{
+				//get the error message from the validation code
+				msg =  messageSource.getMessage(it, null)
+			};
+			//has error, so return the error message as JSON
+			render([success: false, error:msg] as JSON)
 			return
 		}
 
@@ -44,11 +50,12 @@ class RegisterController extends grails.plugin.springsecurity.ui.RegisterControl
 		RegistrationCode registrationCode = springSecurityUiService.register(user, command.password, salt)
 		if (registrationCode == null || registrationCode.hasErrors()) {
 			// null means problem creating the user
-			flash.error = message(code: 'spring.security.ui.register.miscError')
-			flash.chainedParams = params
-			redirect action: 'index'
+			msg = message(code: 'spring.security.ui.register.miscError')
+			//has error, so return the error message as JSON
+			render([success: false, error:msg] as JSON)
 			return
 		}
+
 
 		String url = generateLink('verifyRegistration', [t: registrationCode.token])
 
@@ -64,7 +71,8 @@ class RegisterController extends grails.plugin.springsecurity.ui.RegisterControl
 			html body.toString()
 		}
 
-		render view: 'index', model: [emailSent: true]
+		render([success: true] as JSON)
+		return
 	}
 
 	static final betterPasswordValidator = { String password, command ->
