@@ -261,7 +261,7 @@ grails {
 			requestMap.className = 'org.modelcatalogue.core.testapp.Requestmap'
 			securityConfigType = 'Requestmap'
 
-			defaultTargetUrl = "/app/"
+//			defaultTargetUrl = "/app/"
 		}
 	}
 }

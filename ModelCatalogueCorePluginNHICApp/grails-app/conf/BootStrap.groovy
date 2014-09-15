@@ -78,9 +78,9 @@ class BootStrap {
                 '/**/css/**',
                 '/**/images/**',
                 '/**/img/**',
-                '/login', '/login.*', '/login/*',
+                '/login/','/login.*', '/login/*',
                 '/logout', '/logout.*', '/logout/*',
-                '/register/*', '/errors', '/errors/*'
+                '/register/*', '/errors', '/errors/*', '/index'
         ]) {
             new Requestmap(url: url, configAttribute: 'permitAll').save(failOnError: true)
         }

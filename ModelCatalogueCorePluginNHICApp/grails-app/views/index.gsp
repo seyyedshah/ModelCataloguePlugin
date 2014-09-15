@@ -9,6 +9,11 @@
 </head>
 
 <body ng-app="metadataCurator">
+
+<g:if test="${request.queryString?.contains('login')}">
+    <div ng-init="login()"  ng-controller="metadataCurator.loginCtrl"></div>
+</g:if>
+
 <div id="wrap">
     <div class="navbar navbar-default navbar-fixed-top" role="navigation">
         <div class="container">
