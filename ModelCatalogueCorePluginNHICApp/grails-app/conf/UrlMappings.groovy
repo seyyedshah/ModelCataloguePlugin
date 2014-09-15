@@ -7,6 +7,7 @@ class UrlMappings {
             }
 		}
 		"/app"(view:"/app/index")
+		"/register/changePassword"(controller:"register", action: "changePassword")
         "/"(view:"/index")
 	}
 }
