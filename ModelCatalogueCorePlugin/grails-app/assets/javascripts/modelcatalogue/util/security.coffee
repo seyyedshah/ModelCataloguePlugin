@@ -112,7 +112,7 @@ angular.module('mc.util.security', ['http-auth-interceptor', 'mc.util.messages']
     securityFactory = factory
 
   # factory method
-  securityProvider.$get = [ '$injector', '$rootScope', '$q', '$log', ($injector, $rootScope, $q, $log) ->
+  securityProvider.$get = [ '$injector', '$rootScope', '$q', '$log', '$state', ($injector, $rootScope, $q, $log, $state) ->
 
     if securityFactory == noSecurityFactory
       $log.warn "You are using default security service. You should consider setting up more advanced one."
@@ -139,6 +139,8 @@ angular.module('mc.util.security', ['http-auth-interceptor', 'mc.util.messages']
       oldUser = security.getCurrentUser()
       $q.when(logoutFn()).then ->
         $rootScope.$broadcast 'userLoggedOut', oldUser
+        $state.go 'dashboard'
+
 
     security.requireLogin = ->
       $rootScope.$broadcast 'event:auth-loginRequired'
