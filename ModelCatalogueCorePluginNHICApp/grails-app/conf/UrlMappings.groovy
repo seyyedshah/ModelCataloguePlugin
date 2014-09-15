@@ -8,6 +8,12 @@ class UrlMappings {
 		}
 		"/app"(view:"/app/index")
 		"/register/changePassword"(controller:"register", action: "changePassword")
-        "/"(view:"/index")
+		"/login/auth"(view:"/?login=true")
+
+		"403"(controller: "errors", action: "error403")
+		"404"(controller: "errors", action: "error404")
+		"500"(controller: "errors", action: "error500")
+
+		"/"(view:"/index")
 	}
 }
