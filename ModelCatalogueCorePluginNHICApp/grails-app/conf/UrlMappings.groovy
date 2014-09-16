@@ -8,6 +8,8 @@ class UrlMappings {
 		}
 		"/register/changePassword"(controller:"register", action: "changePassword")
 		"/register/register"(controller:"register", action: "register")
+		"/register/"(uri:"/")
+		"/register/index"(uri:"/")
 		"/login/auth"(view:"/?login=true")
 
 		"403"(controller: "errors", action: "error403")
