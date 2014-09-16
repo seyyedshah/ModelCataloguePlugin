@@ -133,6 +133,95 @@ class RegisterController extends grails.plugin.springsecurity.ui.RegisterControl
 		return
 	}
 
+
+
+	def forgotPassword(ForgotPasswordCommand command) {
+
+		def msg
+		String username = command.username
+		if (!username) {
+			msg = message(code: 'spring.security.ui.forgotPassword.username.missing')
+			render([success: false, error:msg] as JSON)
+			return
+		}
+
+		String usernameFieldName = SpringSecurityUtils.securityConfig.userLookup.usernamePropertyName
+		def user = lookupUserClass().findWhere((usernameFieldName): username)
+		if (!user) {
+			msg = message(code: 'spring.security.ui.forgotPassword.user.notFound')
+			render([success: false, error:msg] as JSON)
+			return
+		}
+
+		def registrationCode = new RegistrationCode(username: user."$usernameFieldName")
+		registrationCode.save(flush: true)
+
+		String url = generateLink('resetPassword', [t: registrationCode.token])
+
+		def conf = SpringSecurityUtils.securityConfig
+		def body = conf.ui.forgotPassword.emailBody
+		if (body.contains('$')) {
+			body = evaluate(body, [user: user, url: url])
+		}
+		mailService.sendMail {
+			to user.email
+			from conf.ui.forgotPassword.emailFrom
+			subject conf.ui.forgotPassword.emailSubject
+			html body.toString()
+		}
+
+		render([success: true] as JSON)
+		return
+	}
+
+
+	def resetPassword(ResetPasswordCommand command) {
+
+		String token = params.t
+
+		def registrationCode = token ? RegistrationCode.findByToken(token) : null
+		if (!registrationCode) {
+			flash.error = message(code: 'spring.security.ui.resetPassword.badCode')
+			redirect uri: SpringSecurityUtils.securityConfig.successHandler.defaultTargetUrl
+			return
+		}
+
+		if (!request.post) {
+			return [token: token, command: new ResetPasswordCommand()]
+		}
+
+		command.username = registrationCode.username
+		command.validate()
+		if (command.hasErrors()) {
+
+			command.errors?.allErrors?.each{
+				flash.error =  messageSource.getMessage(it, null)
+			};
+
+			return [token: token, command: command]
+		}
+
+		String salt = saltSource instanceof NullSaltSource ? null : registrationCode.username
+		RegistrationCode.withTransaction { status ->
+			String usernameFieldName = SpringSecurityUtils.securityConfig.userLookup.usernamePropertyName
+			def user = lookupUserClass().findWhere((usernameFieldName): registrationCode.username)
+			user.password = springSecurityUiService.encodePassword(command.password, salt)
+			user.save()
+			registrationCode.delete()
+		}
+
+		springSecurityService.reauthenticate registrationCode.username
+
+		flash.message = message(code: 'spring.security.ui.resetPassword.success')
+
+		def conf = SpringSecurityUtils.securityConfig
+		String postResetUrl = conf.ui.register.postResetUrl ?: conf.successHandler.defaultTargetUrl
+		redirect uri: postResetUrl
+	}
+
+
+
+
 	static boolean checkPasswordMinLength(String password, command) {
 		def conf = SpringSecurityUtils.securityConfig
 
@@ -160,6 +249,11 @@ class RegisterController extends grails.plugin.springsecurity.ui.RegisterControl
 
 }
 
+
+
+class ForgotPasswordCommand {
+	String username
+}
 
 class RegisterCommand {
 
