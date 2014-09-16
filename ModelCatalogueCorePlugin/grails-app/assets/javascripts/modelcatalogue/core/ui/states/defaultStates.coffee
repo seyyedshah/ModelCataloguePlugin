@@ -464,8 +464,9 @@ angular.module('mc.core.ui.states.defaultStates', ['ui.router', 'mc.util.ui'])
 			</p>
 
       <form ng-controller="metadataCurator.userCtrl">
-         <button ng-click="login()" class="btn btn-large btn-primary" type="submit">Login <i class="glyphicon glyphicon-log-in"></i></button>
-         <button ng-click="register()" class="btn btn-large btn-primary" type="submit">Sign Up<i class="glyphicon glyphicon-pencil"></i></button>
+        <button ng-click="login()" class="btn btn-large btn-primary" type="submit">Login <i class="glyphicon glyphicon-log-in"></i></button>
+        <button ng-click="register()" class="btn btn-large btn-primary" type="submit">Sign Up<i class="glyphicon glyphicon-pencil"></i></button>
+        <p class="forgotPassword"><a ng-click="forgotPassword()">Forgot Password</a></p>
       </form>
     </div>
 
