@@ -2,7 +2,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Model Catalogue NHIC App</title>
+    <title>Model Catalogue NHIC</title>
     <asset:stylesheet href="metaDataCurator.css"/>
     <asset:stylesheet href="application.css"/>
 
