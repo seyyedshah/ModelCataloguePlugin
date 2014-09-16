@@ -9,7 +9,6 @@ class Requestmap {
     HttpMethod httpMethod
 
     static mapping = {
-        cache true
     }
 
     static constraints = {
