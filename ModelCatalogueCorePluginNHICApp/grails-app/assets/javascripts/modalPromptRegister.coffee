@@ -33,7 +33,7 @@ angular.module('mc.core.ui.bs.modalPromptRegister', ['mc.util.messages', 'ngCook
 
 
               <div class="form-group">
-                <label for="email">Emial*</label>
+                <label for="email">Email*</label>
                 <input type="text" class="form-control" id="email" placeholder="Email" ng-model="user.email">
               </div>
 
