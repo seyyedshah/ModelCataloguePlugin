@@ -100,17 +100,45 @@ environments {
 		grails.mail.disabled = true
 	}
 	production {
-		grails.logging.jul.usebridge = false
-		mail {
-			host = System.env.MC_MAIL_HOST ?: 'smtp.gmail.com'
-			port = System.env.MC_MAIL_PORT ?: 587
-			username = System.env.MC_MAIL_USER ?: ''
-			password = System.env.MC_MAIL_PASS ?: ''
 
-			props = ["mail.smtp.auth": "true",
-					"mail.smtp.socketFactory.port": "465",
-					"mail.smtp.socketFactory.class": "javax.net.ssl.SSLSocketFactory",
-					"mail.smtp.socketFactory.fallback": "false"]
+		grails {
+
+			app.context = '/'
+
+			logging.jul.usebridge = false
+			mail {
+				host = System.env.MC_MAIL_HOST ?: 'smtp.gmail.com'
+				port = System.env.MC_MAIL_PORT ?: 587
+				username = System.env.MC_MAIL_USER ?: ''
+				password = System.env.MC_MAIL_PASS ?: ''
+				props = ["mail.smtp.auth": "true",
+						"mail.smtp.socketFactory.port": "465",
+						"mail.smtp.socketFactory.class": "javax.net.ssl.SSLSocketFactory",
+						"mail.smtp.socketFactory.fallback": "false"]
+			}
+
+			plugin{
+				springsecurity{
+					//This will ask server to use HTTPS when accessing login page
+					//after login, communication channel remains in HTTPS as  WE HAVE NOT DEFINED channel status for other pages
+					secureChannel.definition = [
+							'/**': 			'REQUIRES_SECURE_CHANNEL',
+							'/index.gsp': 		'REQUIRES_SECURE_CHANNEL'
+					]
+					auth.forceHttps = true
+					//But when using a load balancer such as an F5 BIG-IP it's not possible to just check secure/insecure.
+					// In that case you can configure the load balancer to set a request header indicating the current state.
+					//http://grails-plugins.github.io/grails-spring-security-core/guide/channelSecurity.html
+					secureChannel.useHeaderCheckChannelSecurity = true
+					portMapper.httpPort = 80
+					portMapper.httpsPort = 443
+					secureChannel.secureHeaderName = 'X-Forwarded-Proto'
+					secureChannel.secureHeaderValue = 'http'
+					secureChannel.insecureHeaderName = 'X-Forwarded-Proto'
+					secureChannel.insecureHeaderValue = 'https'
+				}
+			}
+
 		}
 	}
 }
