@@ -36,6 +36,7 @@ angular.module('mc.util.security', ['http-auth-interceptor', 'mc.util.messages']
       logoutUrl     = 'logout'
       userUrl       = 'login/ajaxSuccess'
       changePasswordUrl = 'register/changePassword'
+      forgotPasswordUrl = 'register/forgotPassword'
       registerUrl ='register/register'
       usernameParam = config.username ? 'j_username'
       passwordParam = config.password ? 'j_password'
@@ -102,6 +103,16 @@ angular.module('mc.util.security', ['http-auth-interceptor', 'mc.util.messages']
           $http(
             method: httpMethod,
             url: changePasswordUrl
+            data: params
+          ).then (result) ->
+            result
+
+
+        forgotPassword: (username)->
+          params = {username:username}
+          $http(
+            method: httpMethod,
+            url: forgotPasswordUrl,
             data: params
           ).then (result) ->
             result
