@@ -137,6 +137,12 @@ class RegisterController extends grails.plugin.springsecurity.ui.RegisterControl
 
 	def forgotPassword(ForgotPasswordCommand command) {
 
+		if (!request.post) {
+			// show the form
+			redirect uri: SpringSecurityUtils.securityConfig.successHandler.defaultTargetUrl
+			return
+		}
+
 		def msg
 		String username = command.username
 		if (!username) {
