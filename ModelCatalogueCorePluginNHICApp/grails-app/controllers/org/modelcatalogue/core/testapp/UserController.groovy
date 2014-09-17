@@ -32,16 +32,22 @@ class UserController extends grails.plugin.springsecurity.ui.UserController {
 		String url = generateLink('resetPassword', [t: registrationCode.token])
 
 
-		def siteUrl = "$request.scheme://$request.serverName:$request.serverPort$request.contextPath"
+		def siteUrl = createLink(uri:"/",absolute : 'true');
 
 		sendMail {
 			to "${user.firstName} ${user.lastName}<${user.email}>"
 			// FIXME needs to be refactored into a messages class - i18n support
 			subject "Model Catalogue user account details"
-			html( g.render(template: "userCreatedEmail", model: [user: user, resetLink: url, mcUrl: siteUrl] ))
+			html( g.render(template: "userCreatedEmail", model: [user: user, resetLink: url, mcURL: siteUrl] ))
 		}
 
 		redirect action: 'edit', id: user.id
+	}
+
+	protected String generateLink(String action, linkParams) {
+		createLink(base: "$request.scheme://$request.serverName:$request.serverPort$request.contextPath",
+				controller: 'register', action: action,
+				params: linkParams)
 	}
 
 }

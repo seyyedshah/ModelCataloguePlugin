@@ -56,19 +56,29 @@ class RegisterController extends grails.plugin.springsecurity.ui.RegisterControl
 			return
 		}
 
+//		def conf = SpringSecurityUtils.securityConfig
+//		String url = generateLink('verifyRegistration', [t: registrationCode.token])
+//		def body = conf.ui.register.emailBody
+//		if (body.contains('$')) {
+//			body = evaluate(body, [user: user, url: url])
+//		}
+//		mailService.sendMail {
+//			to command.email
+//			from conf.ui.register.emailFrom
+//			subject conf.ui.register.emailSubject
+//			html body.toString()
+//		}
 
-		String url = generateLink('verifyRegistration', [t: registrationCode.token])
+		def siteUrl = createLink(uri:"/",absolute : 'true');
 
-		def conf = SpringSecurityUtils.securityConfig
-		def body = conf.ui.register.emailBody
-		if (body.contains('$')) {
-			body = evaluate(body, [user: user, url: url])
-		}
+
+		def body = g.render(template: "userRegisteredEmail", model: [user: user, mcURL: siteUrl])
+
 		mailService.sendMail {
-			to command.email
-			from conf.ui.register.emailFrom
-			subject conf.ui.register.emailSubject
-			html body.toString()
+			to "${command.firstName} ${command.lastName}<${command.email}>"
+			// FIXME needs to be refactored into a messages class - i18n support
+			subject "New Account"
+			html(body)
 		}
 
 		render([success: true] as JSON)
