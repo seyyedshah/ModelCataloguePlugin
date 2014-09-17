@@ -293,6 +293,8 @@ grails {
 
 
 grails.assets.excludes = ["bootstrap/**/*.less", "jquery/**/*.js", "angular/**/*.js"]
+grails.assets.includes = ["bootstrap/less/bootstrap.less","font-awesome/less/font-awesome.less"]
+
 
 grails.assets.plugin."model-catalogue-core-plugin".excludes = ["bootstrap/**/*.less", "jquery/**/*.js", "angular/**/*.js"]
 grails.assets.plugin."model-catalogue-core-plugin".includes = ["bootstrap.less"]
