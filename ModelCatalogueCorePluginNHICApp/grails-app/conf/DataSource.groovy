@@ -28,13 +28,18 @@ environments {
     production {
 //        dataSource {
 //            dialect = 'org.hibernate.dialect.MySQL5InnoDBDialect'
-//            pooled = false
-//            dbCreate = 'update' // use 'update', 'validate', 'create' or 'create-drop'
-//            jndiName = 'java:comp/env/jdbc/mcc-testapp'
+//			pooled = true
+//			dbCreate = "create-drop"
+//			url = "jdbc:mysql://localhost:13306/McProd"
+//			driverClassName = "com.mysql.jdbc.Driver"
+//			username = "root"
 //        }
-        dataSource {
-            dbCreate = "create-drop" // one of 'create', 'create-drop', 'update', 'validate', ''
-            url = "jdbc:h2:mem:devDb;MVCC=TRUE;LOCK_TIMEOUT=10000;DB_CLOSE_ON_EXIT=FALSE"
-        }
+
+
+//        dataSource {
+//            dbCreate = "create-drop" // one of 'create', 'create-drop', 'update', 'validate', ''
+//            url = "jdbc:h2:mem:devDb;MVCC=TRUE;LOCK_TIMEOUT=10000;DB_CLOSE_ON_EXIT=FALSE"
+//        }
+
     }
 }
