@@ -305,4 +305,6 @@ grails.assets.minifyOptions = [
 
 //grails.assets.bundle=false
 
-grails.assets.minifyJs = true
+grails.assets.minifyJs=false
+grails.assets.minifyCss =false
+grails.assets.bundle=false
