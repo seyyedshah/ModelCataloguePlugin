@@ -7,6 +7,7 @@ import org.modelcatalogue.core.testapp.User
 import org.modelcatalogue.core.testapp.UserRole
 import org.modelcatalogue.core.util.ListWrapper
 import org.modelcatalogue.core.util.marshalling.xlsx.XLSXListRenderer
+import org.springframework.http.HttpMethod
 
 class BootStrap {
 
@@ -77,37 +78,35 @@ class BootStrap {
 				'/logout', '/logout.*', '/logout/*',
 				'/register/*','/errors', '/errors/*', '/index'
 		]) {
-			new Requestmap(url: url, configAttribute: 'permitAll').save(failOnError: true)
+			createRequestmapIfMissing(url,'permitAll',null)
 		}
 
-		new Requestmap(url: '/api/modelCatalogue/core/*/**', configAttribute: 'IS_AUTHENTICATED_FULLY',   httpMethod: org.springframework.http.HttpMethod.GET).save(failOnError: true)
-		new Requestmap(url: '/asset/download/*',             configAttribute: 'IS_AUTHENTICATED_FULLY',   httpMethod: org.springframework.http.HttpMethod.GET).save(failOnError: true)
-		new Requestmap(url: '/api/modelCatalogue/core/*/**', configAttribute: 'ROLE_METADATA_CURATOR',    httpMethod: org.springframework.http.HttpMethod.POST).save(failOnError: true)
-		new Requestmap(url: '/api/modelCatalogue/core/*/**', configAttribute: 'ROLE_METADATA_CURATOR',    httpMethod: org.springframework.http.HttpMethod.PUT).save(failOnError: true)
-		new Requestmap(url: '/api/modelCatalogue/core/*/**', configAttribute: 'ROLE_METADATA_CURATOR',    httpMethod: org.springframework.http.HttpMethod.DELETE).save(failOnError: true)
-
-
+		createRequestmapIfMissing('/api/modelCatalogue/core/*/**', 'IS_AUTHENTICATED_FULLY',  org.springframework.http.HttpMethod.GET)
+		createRequestmapIfMissing('/asset/download/*',             'IS_AUTHENTICATED_FULLY',  org.springframework.http.HttpMethod.GET)
+		createRequestmapIfMissing('/api/modelCatalogue/core/*/**', 'ROLE_METADATA_CURATOR',   org.springframework.http.HttpMethod.POST)
+		createRequestmapIfMissing('/api/modelCatalogue/core/*/**', 'ROLE_METADATA_CURATOR',   org.springframework.http.HttpMethod.PUT)
+		createRequestmapIfMissing('/api/modelCatalogue/core/*/**', 'ROLE_METADATA_CURATOR',   org.springframework.http.HttpMethod.DELETE)
 
 
 		//only permit admin user for Spring Security URIs
-		new Requestmap(url: '/admin', configAttribute: 'ROLE_ADMIN, IS_AUTHENTICATED_FULLY').save()
-		new Requestmap(url: '/admin/**', configAttribute: 'ROLE_ADMIN, IS_AUTHENTICATED_FULLY').save()
-		new Requestmap(url: '/securityInfo/**', configAttribute: 'ROLE_ADMIN, IS_AUTHENTICATED_FULLY').save()
-		new Requestmap(url: '/role', configAttribute: 'ROLE_ADMIN, IS_AUTHENTICATED_FULLY').save()
-		new Requestmap(url: '/role/**', configAttribute: 'ROLE_ADMIN, IS_AUTHENTICATED_FULLY').save()
-		new Requestmap(url: '/registrationCode', configAttribute: 'ROLE_ADMIN, IS_AUTHENTICATED_FULLY').save()
-		new Requestmap(url: '/registrationCode/**', configAttribute: 'ROLE_ADMIN, IS_AUTHENTICATED_FULLY').save()
-		new Requestmap(url: '/user', configAttribute: 'ROLE_ADMIN, IS_AUTHENTICATED_FULLY').save()
-		new Requestmap(url: '/user/**', configAttribute: 'ROLE_ADMIN, IS_AUTHENTICATED_FULLY').save()
-		new Requestmap(url: '/aclClass', configAttribute: 'ROLE_ADMIN, IS_AUTHENTICATED_FULLY').save()
-		new Requestmap(url: '/aclClass/**', configAttribute: 'ROLE_ADMIN, IS_AUTHENTICATED_FULLY').save()
-		new Requestmap(url: '/aclSid', configAttribute: 'ROLE_ADMIN, IS_AUTHENTICATED_FULLY').save()
-		new Requestmap(url: '/aclSid/**', configAttribute: 'ROLE_ADMIN, IS_AUTHENTICATED_FULLY').save()
-		new Requestmap(url: '/aclEntry', configAttribute: 'ROLE_ADMIN, IS_AUTHENTICATED_FULLY').save()
-		new Requestmap(url: '/aclEntry/**', configAttribute: 'ROLE_ADMIN, IS_AUTHENTICATED_FULLY').save()
-		new Requestmap(url: '/aclObjectIdentity', configAttribute: 'ROLE_ADMIN, IS_AUTHENTICATED_FULLY').save()
-		new Requestmap(url: '/requestmap', configAttribute: 'ROLE_ADMIN, IS_AUTHENTICATED_FULLY').save()
-		new Requestmap(url: '/requestmap/**', configAttribute: 'ROLE_ADMIN, IS_AUTHENTICATED_FULLY').save()
+		createRequestmapIfMissing('/admin','ROLE_ADMIN, IS_AUTHENTICATED_FULLY',null)
+		createRequestmapIfMissing('/admin/**','ROLE_ADMIN, IS_AUTHENTICATED_FULLY',null)
+		createRequestmapIfMissing('/securityInfo/**','ROLE_ADMIN, IS_AUTHENTICATED_FULLY',null)
+		createRequestmapIfMissing('/role','ROLE_ADMIN, IS_AUTHENTICATED_FULLY',null)
+		createRequestmapIfMissing('/role/**','ROLE_ADMIN, IS_AUTHENTICATED_FULLY',null)
+		createRequestmapIfMissing('/registrationCode','ROLE_ADMIN, IS_AUTHENTICATED_FULLY',null)
+		createRequestmapIfMissing('/registrationCode/**','ROLE_ADMIN, IS_AUTHENTICATED_FULLY',null)
+		createRequestmapIfMissing('/user','ROLE_ADMIN, IS_AUTHENTICATED_FULLY',null)
+		createRequestmapIfMissing('/user/**','ROLE_ADMIN, IS_AUTHENTICATED_FULLY',null)
+		createRequestmapIfMissing('/aclClass','ROLE_ADMIN, IS_AUTHENTICATED_FULLY',null)
+		createRequestmapIfMissing('/aclClass/**','ROLE_ADMIN, IS_AUTHENTICATED_FULLY',null)
+		createRequestmapIfMissing('/aclSid','ROLE_ADMIN, IS_AUTHENTICATED_FULLY',null)
+		createRequestmapIfMissing('/aclSid/**','ROLE_ADMIN, IS_AUTHENTICATED_FULLY',null)
+		createRequestmapIfMissing('/aclEntry','ROLE_ADMIN, IS_AUTHENTICATED_FULLY',null)
+		createRequestmapIfMissing('/aclEntry/**','ROLE_ADMIN, IS_AUTHENTICATED_FULLY',null)
+		createRequestmapIfMissing('/aclObjectIdentity','ROLE_ADMIN, IS_AUTHENTICATED_FULLY',null)
+		createRequestmapIfMissing('/requestmap','ROLE_ADMIN, IS_AUTHENTICATED_FULLY',null)
+		createRequestmapIfMissing('/requestmap/**','ROLE_ADMIN, IS_AUTHENTICATED_FULLY',null)
 
 	}
 
@@ -160,4 +159,9 @@ class BootStrap {
 	}
 
     def destroy = {}
+
+	private static Requestmap createRequestmapIfMissing(String url, String configAttribute, HttpMethod method = null) {
+		Requestmap.findOrSaveByUrlAndConfigAttributeAndHttpMethod(url, configAttribute, method, [failOnError: true])
+	}
+
 }
