@@ -1,4 +1,140 @@
-angular.module('mc.core.ui.bs.actions', ['mc.util.ui.actions']).config ['actionsProvider', (actionsProvider)->
+angular.module('mc.core.ui.bs.actions', ['mc.util.ui.actions']).config ['actionsProvider', 'names', (actionsProvider, names)->
+
+  actionsProvider.registerAction 'navbar-catalogue-elements', ->
+    {
+      navigation: true
+      position:   100
+      abstract:   true
+      label:      'Catalogue'
+    }
+
+  RESOURCES = [
+    'classification'
+    'model'
+    'dataElement'
+    'conceptualDomain'
+    'valueDomain'
+    'dataType'
+    'measurementUnit'
+    'asset'
+    'relationshipType'
+    'csvTransformation'
+    'batch'
+  ]
+
+
+
+  angular.forEach RESOURCES, (resource, index) ->
+    actionsProvider.registerChildAction 'navbar-catalogue-elements', 'navbar-' + resource ,['$scope', '$state', '$stateParams', 'names', 'security', 'messages', 'catalogue', ($scope, $state, $stateParams, names, security, messages, catalogue) ->
+      return undefined if (resource == 'batch' or resource == 'relationshipType' or resource == 'csvTransformation') and not security.hasRole('CURATOR')
+
+      label = names.getNaturalName(resource) + 's'
+
+      if resource == 'batch'
+        label = 'Actions'
+      else if resource == 'csvTransformation'
+        label = 'CSV Transformations'
+
+      action = {
+        icon:       catalogue.getIcon(resource)
+        position:   index * 100
+        label:      label
+        action: ->
+          $state.go 'mc.resource.list', {resource: resource}, {inherit: false}
+      }
+
+      $scope.$on '$stateChangeSuccess', (ignored, ignoredToState, toParams) ->
+        action.active = toParams.resource == resource
+
+      action
+
+
+    ]
+
+
+  actionsProvider.registerAction 'navbar-data-architect', ['security', (security) ->
+    return undefined if not security.hasRole('CURATOR')
+
+    {
+      navigation: true
+      abstract:   true
+      position:   1000
+      label:      'Data Architect'
+    }
+  ]
+
+  actionsProvider.registerChildAction 'navbar-data-architect', 'navbar-imports', ['$scope', '$state', ($scope, $state) ->
+    action = {
+      position:    100
+      label:      'Imports'
+      icon:       'fa fa-fw fa-cloud-upload'
+      action: ->
+        $state.go 'mc.dataArchitect.imports.list'
+    }
+
+    $scope.$on '$stateChangeSuccess', (ignored, state) ->
+      action.active = state.name == 'mc.dataArchitect.imports.list'
+
+    action
+  ]
+
+  actionsProvider.registerChildAction 'navbar-data-architect', 'navbar-uninstantiated-elements', ['$scope', '$state', ($scope, $state) ->
+    action = {
+      position:    200
+      label:      'Uninstantiated Data Elements'
+      icon:       'fa fa-fw fa-cube'
+      action: ->
+        $state.go 'mc.dataArchitect.uninstantiatedDataElements'
+    }
+
+    $scope.$on '$stateChangeSuccess', (ignored, state) ->
+      action.active = state.name == 'mc.dataArchitect.uninstantiatedDataElements'
+
+    action
+  ]
+
+  actionsProvider.registerChildAction 'navbar-data-architect', 'navbar-relations-by-metadata-key', ['$scope', '$state', ($scope, $state) ->
+    action = {
+      position:    300
+      label:      'Create COSD Synonym Data Element Relationships'
+      icon:       'fa fa-fw fa-exchange'
+      action: ->
+        $state.go 'mc.dataArchitect.findRelationsByMetadataKeys'
+    }
+
+    $scope.$on '$stateChangeSuccess', (ignored, state) ->
+      action.active = state.name == 'mc.dataArchitect.findRelationsByMetadataKeys'
+
+    action
+  ]
+
+  actionsProvider.registerChildAction 'navbar-data-architect', 'navbar-element-without-key', ['$scope', '$state', ($scope, $state) ->
+    action = {
+      position:    400
+      label:      'Data Elements without Metadata Key'
+      icon:       'fa fa-fw fa-key'
+      action: ->
+        $state.go 'mc.dataArchitect.metadataKey'
+    }
+
+    $scope.$on '$stateChangeSuccess', (ignored, state) ->
+      action.active = state.name == 'mc.dataArchitect.metadataKey'
+
+    action
+  ]
+
+# TODO: fix or remove
+#  actionsProvider.registerChildAction 'navbar-data-architect', 'navbar-export-uninstantiated', ['$window', 'modelCatalogueApiRoot', ($window, modelCatalogueApiRoot) ->
+#    {
+#      position:    500
+#      label:      'Export Uninstantiated Elements'
+#      icon:       'fa fa-fw fa-download'
+#      action: ->
+#        # will need special handling since it's exported to asset?
+#        $window.open "#{modelCatalogueApiRoot}/dataArchitect/uninstantiatedDataElements?format=xlsx&report=NHIC", '_blank'; return true
+#    }
+#  ]
+
 
   showErrorsUsingMessages = (messages) ->
     (response) ->
@@ -306,8 +442,8 @@ angular.module('mc.core.ui.bs.actions', ['mc.util.ui.actions']).config ['actions
     return undefined if not angular.isFunction $scope.element.isInstanceOf
     return undefined if not $scope.element.isInstanceOf('valueDomain')
 
-    {
-      position:   0
+    action = {
+      position:   -100
       label:      'Convert'
       icon:       'fa fa-long-arrow-right'
       type:       'primary'
@@ -315,6 +451,32 @@ angular.module('mc.core.ui.bs.actions', ['mc.util.ui.actions']).config ['actions
         messages.prompt('', '', {type: 'convert-with-value-domain', source: $scope.element})
 
     }
+
+    $scope.$watch 'element.mappings.total', (total) ->
+      action.disabled = not total
+
+    action
+
+  ]
+
+  actionsProvider.registerAction 'validate-value', [ '$scope', 'messages', 'security', ($scope, messages) ->
+    return undefined if not $scope.element
+    return undefined if not angular.isFunction $scope.element.isInstanceOf
+    return undefined if not $scope.element.isInstanceOf('valueDomain')
+
+    action = {
+      position:   -200
+      label:      'Validate Value'
+      icon:       'fa fa-check-circle-o'
+      type:       'primary'
+      action:     ->
+        messages.prompt('', '', {type: 'validate-value-by-domain', domain: $scope.element})
+    }
+
+    $scope.$watch 'element.rule', (rule) ->
+      action.disabled = not rule
+
+    action
   ]
 
   actionsProvider.registerAction 'refresh-asset', [ '$scope', '$rootScope', 'catalogueElementResource', ($scope, $rootScope, catalogueElementResource) ->
@@ -342,10 +504,11 @@ angular.module('mc.core.ui.bs.actions', ['mc.util.ui.actions']).config ['actions
     if $scope.element
       return undefined if $scope.element.isInstanceOf 'dataImport'
     {
-    position:   1000
-    label:      'Export'
-    icon:       'glyphicon glyphicon-download-alt'
-    type:       'primary'
+      position:   1000
+      label:      'Export'
+      icon:       'glyphicon glyphicon-download-alt'
+      type:       'primary'
+      expandToLeft: true
     }
   ]
 

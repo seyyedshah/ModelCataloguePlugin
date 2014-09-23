@@ -38,113 +38,10 @@ metadataCurator.config ['$stateProvider', '$urlRouterProvider', ($stateProvider,
   $urlRouterProvider.otherwise("/dashboard")
 ]
 
-metadataCurator.run ['$templateCache', ($templateCache) ->
-  $templateCache.put 'modelcatalogue/core/ui/omnisearchItem.html', '''
-  <a>
-      <span class="omnisearch-icon" ng-class="match.model.icon"></span>
-      <span ng-if="!match.model.highlight" bind-html-unsafe="match.label"></span>
-      <span ng-if=" match.model.highlight" bind-html-unsafe="match.label | typeaheadHighlight:query"></span>
-  </a>
-'''
-]
 
-metadataCurator.controller('metadataCurator.searchCtrl',
-  ['catalogueElementResource', 'modelCatalogueSearch', '$scope', '$rootScope', '$log', '$q', '$state', 'names'
-    (catalogueElementResource, modelCatalogueSearch, $scope, $rootScope, $log, $q, $state, names)->
-      actions = []
 
-      $scope.search = (item, model, label) ->
-        if angular.isString(item)
-          $state.go('mc.search', {q: model })
-        else
-          item?.action item, model, label
 
-      $scope.clearSelection = ->
-        $state.searchSelect = undefined
-        $rootScope.$stateParams.q = undefined
-        $state.go('.', {q: undefined })
-
-      initActions = ->
-        actions = []
-        actions.push {
-          condition: (term) -> term
-          label: (term) ->
-            "Search <strong>Catalogue Element</strong> for <strong>#{term}</strong>"
-
-          action: (term) -> ->
-            $state.go('mc.search', {q: term})
-
-          icon: 'glyphicon glyphicon-search'
-        }
-
-        actions.push {
-          condition: (term) -> term and $state.includes("mc.resource.list.**") and  $state.$current.params.indexOf('q') >= 0 and $state.params.resource
-          label: (term) ->
-            naturalName = names.getNaturalName($state.params.resource)
-            "Search any <strong>#{naturalName}</strong> for <strong>#{term}</strong>"
-          action: (term) ->
-            ->
-              $state.go('mc.resource.list', {q: term})
-          icon: 'glyphicon glyphicon-search'
-        }
-
-        actions.push {
-          condition: (term) -> term and $state.current.name == 'mc.resource.show.property' and  $state.$current.params.indexOf('q') >= 0 and $rootScope.$$searchContext
-          label: (term) ->
-            "Search current <strong>#{$rootScope.$$searchContext}</strong> for <strong>#{term}</strong>"
-          action: (term) ->
-            ->
-              $state.go('mc.resource.show.property', {q: term})
-          icon: 'glyphicon glyphicon-search'
-        }
-
-      $scope.getResults = (term) ->
-        deferred = $q.defer()
-
-        results = []
-
-        return if not term
-
-        for action in actions when action.condition(term)
-          results.push {
-            label:  action.label(term)
-            action: action.action(term)
-            icon:   action.icon
-            term:   term
-          }
-
-        deferred.notify results
-
-        if term
-          modelCatalogueSearch(term).then (searchResults)->
-            for searchResult in searchResults.list
-              results.push {
-                label:      if searchResult.getLabel then searchResult.getLabel() else searchResult.name
-                action:     searchResult.show
-                icon:       if searchResult.getIcon  then searchResult.getIcon()  else 'glyphicon glyphicon-file'
-                term:       term
-                highlight:  true
-              }
-
-            deferred.resolve results
-        else
-          deferred.resolve results
-
-        deferred.promise
-
-      initActions()
-
-      $scope.$on '$stateChangeSuccess', (event, toState, toParams) ->
-        $scope.searchSelect = toParams.q
-
-  ])
-
-metadataCurator.controller('metadataCurator.userCtrl', ['$scope', 'security', 'messages', ($scope, security,messages)->
-  $scope.logout = ->
-    security.logout()
-
-  $scope.login = ->
-    security.requireLogin()
+metadataCurator.controller('defaultStates.registerCtrl', ['$scope', 'security', 'messages', ($scope, security,messages)->
 
   $scope.register = ->
     messages.prompt('register', null, type: 'register')
@@ -155,7 +52,7 @@ metadataCurator.controller('metadataCurator.userCtrl', ['$scope', 'security', 'm
 ])
 
 
-metadataCurator.controller('metadataCurator.changePasswordCtrl', ['messages', '$scope', (messages, $scope)->
+metadataCurator.controller('defaultStates.changePasswordCtrl', ['messages', '$scope', (messages, $scope)->
   $scope.changePassword = ->
     messages.prompt('change-password', null, type: 'change-password')
 #    .then (success)->

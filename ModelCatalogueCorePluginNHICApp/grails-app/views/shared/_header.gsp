@@ -36,7 +36,7 @@
 <body ng-app="metadataCurator">
 
 <g:if test="${request.queryString?.contains('login')}">
-    <div ng-init="login()"  ng-controller="metadataCurator.userCtrl"></div>
+    <div ng-init="login()"  ng-controller="defaultStates.userCtrl"></div>
 </g:if>
 
 <div id="wrap">
@@ -128,7 +128,7 @@
 
 
                         <ul show-for-role="VIEWER" class="dropdown-menu">
-                            <li ng-controller="metadataCurator.changePasswordCtrl">
+                            <li ng-controller="defaultStates.changePasswordCtrl">
                                 <a ng-click="changePassword()">Change Password</a>
                             </li>
                         </ul>
@@ -150,20 +150,20 @@
                 </ul>
 
                 <form show-if-logged-in class="navbar-form navbar-right" ng-submit="logout()"
-                      ng-controller="metadataCurator.userCtrl">
+                      ng-controller="defaultStates.userCtrl">
                     <button class="btn btn-danger" type="submit"><i class="glyphicon glyphicon-log-out"></i>
                     </button>
                 </form>
 
                 <form hide-if-logged-in class="navbar-form navbar-right" ng-submit="login()"
-                      ng-controller="metadataCurator.userCtrl">
+                      ng-controller="defaultStates.userCtrl">
                     <button class="btn btn-primary" type="submit"><i class="glyphicon glyphicon-log-in"></i>
                     </button>
                 </form>
 
                 <form class="navbar-form navbar-right navbar-input-group search-form" role="search"
                       autocomplete="off" show-for-role="VIEWER"
-                      ng-submit="search()" ng-controller="metadataCurator.searchCtrl">
+                      ng-submit="search()" ng-controller="defaultStates.searchCtrl">
                     <a ng-click="clearSelection()" ng-class="{'invisible': !$stateParams.q}"
                        class="clear-selection btn btn-link"><span class="glyphicon glyphicon-remove"></span></a>
 

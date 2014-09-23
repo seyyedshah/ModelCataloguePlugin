@@ -1,4 +1,4 @@
-angular.module('mc.core.ui.bs.modalPromptCovert', ['mc.util.messages']).config ['messagesProvider', (messagesProvider)->
+angular.module('mc.core.ui.bs.modalPromptConvert', ['mc.util.messages']).config ['messagesProvider', (messagesProvider)->
   factory = [ '$modal', '$q', 'messages', ($modal, $q, messages) ->
     (title, body, args) ->
 
@@ -34,13 +34,13 @@ angular.module('mc.core.ui.bs.modalPromptCovert', ['mc.util.messages']).config [
           $scope.args = args
 
           $scope.definition =
-            source: args.source
+            source: args.source ? args.sourceHint
             destination: args.destination
             value: args.value
 
           $scope.messages = messages.createNewMessages()
 
-          $scope.defaultResult = 'Please enter valid value.'
+          $scope.defaultResult = 'Please enter value.'
 
           $scope.destinations = []
 
@@ -74,6 +74,8 @@ angular.module('mc.core.ui.bs.modalPromptCovert', ['mc.util.messages']).config [
                   $scope.messages.error "Error happened during the conversion. See application log for details"
             else
               $scope.result = $scope.defaultResult
+
+          $scope.convert()
         ]
 
       }
