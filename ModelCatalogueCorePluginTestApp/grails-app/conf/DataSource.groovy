@@ -21,9 +21,8 @@ environments {
     }
     test {
         dataSource {
-            dbCreate = "update"
-            url = "java:comp/env/jdbc/mcc-testapp"
-            driverClassName = "com.mysql.jdbc.Driver"
+            dbCreate = "create-drop"
+			url = "jdbc:h2:mem:testDb;MVCC=TRUE;LOCK_TIMEOUT=10000;DB_CLOSE_ON_EXIT=FALSE"
         }
     }
     production {
