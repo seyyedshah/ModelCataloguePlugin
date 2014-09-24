@@ -54,8 +54,8 @@
                 </ul>
 
                 <form class="navbar-form navbar-right hidden-xs" ng-controller="defaultStates.userCtrl">
-                    <button show-if-logged-in ng-click="logout()" class="btn btn-danger"  type="submit"><i class="glyphicon glyphicon-log-out"></i></button>
-                    <button hide-if-logged-in ng-click="login()"  class="btn btn-primary" type="submit"><i class="glyphicon glyphicon-log-in"></i></button>
+                    <button show-if-logged-in ng-click="logout()" class="btn btn-danger"  type="submit" id="logoutButton"><i class="glyphicon glyphicon-log-out"></i></button>
+                    <button hide-if-logged-in ng-click="login()"  class="btn btn-primary" type="submit" id="loginButton"><i class="glyphicon glyphicon-log-in"></i></button>
                 </form>
 
                 <ng-include src="'modelcatalogue/core/ui/omnisearch.html'"></ng-include>

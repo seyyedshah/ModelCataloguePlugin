@@ -724,7 +724,7 @@ angular.module('mc.core.ui.states.defaultStates', ['ui.router', 'mc.util.ui'])
                                 </div>
                             </div>
 
-                            <a show-for-role="CURATOR" ng-click="create('classification')">
+                            <a show-for-role="CURATOR" ng-click="create('classification')" id="createClassificatinLink">
                                 <div class="panel-footer">
                                     <span class="pull-left">Create Classification</span>
                                     <span class="pull-right"><i class="fa fa-magic"></i></span>
@@ -741,13 +741,13 @@ angular.module('mc.core.ui.states.defaultStates', ['ui.router', 'mc.util.ui'])
                                         <a ui-sref="mc.resource.list({resource: 'model'})" ui-sref-opts="{inherit: false}"><i class="fa fa-cubes fa-5x fa-fw"></i></a>
                                     </div>
                                     <div class="col-xs-9 text-right">
-                                        <div><a id="modelsLink" ui-sref="mc.resource.list({resource: 'model'})" ui-sref-opts="{inherit: false}">Finalized Models</a> {{finalizedModelCount}} </div>
-                                        <div><a id="modelsLink" ui-sref="mc.resource.list({resource: 'model', status:'draft'})" ui-sref-opts="{inherit: false}">Draft Models</a> {{draftModelCount}}</div>
+                                        <div><a id="finalizedModelsLink" ui-sref="mc.resource.list({resource: 'model'})" ui-sref-opts="{inherit: false}">Finalized Models</a> {{finalizedModelCount}} </div>
+                                        <div><a id="draftModelsLink" ui-sref="mc.resource.list({resource: 'model', status:'draft'})" ui-sref-opts="{inherit: false}">Draft Models</a> {{draftModelCount}}</div>
 
                                     </div>
                                 </div>
                             </div>
-                            <a show-for-role="CURATOR" ng-click="create('model')">
+                            <a show-for-role="CURATOR" ng-click="create('model')" id="createModelLink">
                                 <div class="panel-footer">
                                     <span class="pull-left">Create Model</span>
                                     <span class="pull-right"><i class="fa fa-magic"></i></span>
@@ -764,13 +764,13 @@ angular.module('mc.core.ui.states.defaultStates', ['ui.router', 'mc.util.ui'])
                                         <a ui-sref="mc.resource.list({resource: 'dataElement'})" ui-sref-opts="{inherit: false}"><i class="fa fa-cube fa-5x fa-fw"></i></a>
                                     </div>
                                     <div class="col-xs-9 text-right">
-                                        <div><a id="modelsLink" ui-sref="mc.resource.list({resource: 'dataElement'})" ui-sref-opts="{inherit: false}">Finalized Data Elements</a> {{finalizedDataElementCount}} </div>
-                                        <div><a id="modelsLink" ui-sref="mc.resource.list({resource: 'dataElement', status:'draft'})" ui-sref-opts="{inherit: false}">Draft Data Elements</a> {{draftDataElementCount}}</div>
-                                        <div><a id="modelsLink" ui-sref="mc.dataArchitect.uninstantiatedDataElements" ui-sref-opts="{inherit: false}">Uninstantiated Data Elements</a>  {{uninstantiatedDataElementCount}}</div>
+                                        <div><a id="finalizedDataElementsLink" ui-sref="mc.resource.list({resource: 'dataElement'})" ui-sref-opts="{inherit: false}">Finalized Data Elements</a> {{finalizedDataElementCount}} </div>
+                                        <div><a id="draftDataElementsLink" ui-sref="mc.resource.list({resource: 'dataElement', status:'draft'})" ui-sref-opts="{inherit: false}">Draft Data Elements</a> {{draftDataElementCount}}</div>
+                                        <div><a id="uninstantiatedDataElementsLink" ui-sref="mc.dataArchitect.uninstantiatedDataElements" ui-sref-opts="{inherit: false}">Uninstantiated Data Elements</a>  {{uninstantiatedDataElementCount}}</div>
                                     </div>
                                 </div>
                             </div>
-                            <a show-for-role="CURATOR" ng-click="create('dataElement')">
+                            <a show-for-role="CURATOR" ng-click="create('dataElement')" id="createDataElementLink" >
                                 <div class="panel-footer">
                                     <span class="pull-left">Create Data Element</span>
                                     <span class="pull-right"><i class="fa fa-magic"></i></span>
@@ -784,7 +784,7 @@ angular.module('mc.core.ui.states.defaultStates', ['ui.router', 'mc.util.ui'])
                             <div class="panel-heading">
                                 <div class="row">
                                     <div class="col-xs-3">
-                                        <a ui-sref="mc.resource.list({resource: 'conceptualDomain'})" ui-sref-opts="{inherit: false}"><i class="fa fa-cogs fa-5x fa-fw"></i></a>
+                                        <a ui-sref="mc.resource.list({resource: 'conceptualDomain'})" ui-sref-opts="{inherit: false}" id="conceptualDomainsLink"><i class="fa fa-cogs fa-5x fa-fw"></i></a>
                                     </div>
                                     <div class="col-xs-9 text-right">
                                         <div><a id="conceptualDomainLink" ui-sref="mc.resource.list({resource: 'conceptualDomain'})" ui-sref-opts="{inherit: false}"> Conceptual Domains</a> {{conceptualDomainCount}} </div>
@@ -792,7 +792,7 @@ angular.module('mc.core.ui.states.defaultStates', ['ui.router', 'mc.util.ui'])
                                 </div>
                             </div>
 
-                            <a show-for-role="CURATOR" ng-click="create('conceptualDomain')">
+                            <a show-for-role="CURATOR" ng-click="create('conceptualDomain')" id="createConceptualDomainLink">
                                 <div class="panel-footer">
                                     <span class="pull-left">Create Conceptual Domain</span>
                                     <span class="pull-right"><i class="fa fa-magic"></i></span>
@@ -816,7 +816,7 @@ angular.module('mc.core.ui.states.defaultStates', ['ui.router', 'mc.util.ui'])
                                 </div>
                             </div>
 
-                            <a show-for-role="CURATOR" ng-click="create('valueDomain')">
+                            <a show-for-role="CURATOR" ng-click="create('valueDomain')" id="createValueDomainsLink">
                                 <div class="panel-footer">
                                     <span class="pull-left">Create Value Domain</span>
                                     <span class="pull-right"><i class="fa fa-magic"></i></span>
@@ -837,7 +837,7 @@ angular.module('mc.core.ui.states.defaultStates', ['ui.router', 'mc.util.ui'])
                                     </div>
                                 </div>
                             </div>
-                            <a show-for-role="CURATOR" ng-click="create('dataType')">
+                            <a show-for-role="CURATOR" ng-click="create('dataType')" id="createDataTypesLink">
                                 <div class="panel-footer">
                                     <span class="pull-left" >Create Data Type</span>
                                     <span class="pull-right"><i class="fa fa-magic"></i></span>
@@ -854,11 +854,11 @@ angular.module('mc.core.ui.states.defaultStates', ['ui.router', 'mc.util.ui'])
                                         <a ui-sref="mc.resource.list({resource: 'measurementUnit'})" ui-sref-opts="{inherit: false}"><i class="fa fa-tachometer fa-5x fa-fw"></i></a>
                                     </div>
                                     <div class="col-xs-9 text-right">
-                                        <div><a id="modelsLink" ui-sref="mc.resource.list({resource: 'measurementUnit'})" ui-sref-opts="{inherit: false}">Measurement Units</a> {{measurementUnitCount}} </div>
+                                        <div><a id="measurementUnitLink" ui-sref="mc.resource.list({resource: 'measurementUnit'})" ui-sref-opts="{inherit: false}">Measurement Units</a> {{measurementUnitCount}} </div>
                                     </div>
                                 </div>
                             </div>
-                            <a show-for-role="CURATOR" ng-click="create('measurementUnit')">
+                            <a show-for-role="CURATOR" ng-click="create('measurementUnit')" id="createMeasurementUnitLink">
                                 <div class="panel-footer">
                                     <span class="pull-left">Create Measurement Unit</span>
                                     <span class="pull-right"><i class="fa fa-magic"></i></span>
@@ -875,13 +875,13 @@ angular.module('mc.core.ui.states.defaultStates', ['ui.router', 'mc.util.ui'])
                                         <a ui-sref="mc.resource.list({resource: 'asset'})" ui-sref-opts="{inherit: false}"><i class="fa fa-file-o fa-5x fa-fw"></i></a>
                                     </div>
                                     <div class="col-xs-9 text-right">
-                                        <div><a id="modelsLink" ui-sref="mc.resource.list({resource: 'asset'})" ui-sref-opts="{inherit: false}">Finalized Assets</a> {{finalizedAssetCount}} </div>
-                                        <div><a id="modelsLink" ui-sref="mc.resource.list({resource: 'asset', status:'draft'})" ui-sref-opts="{inherit: false}">Draft Assets</a> {{draftAssetCount}}</div>
+                                        <div><a id="finalizedAssetsLink" ui-sref="mc.resource.list({resource: 'asset'})" ui-sref-opts="{inherit: false}">Finalized Assets</a> {{finalizedAssetCount}} </div>
+                                        <div><a id="draftAssetsLink" ui-sref="mc.resource.list({resource: 'asset', status:'draft'})" ui-sref-opts="{inherit: false}">Draft Assets</a> {{draftAssetCount}}</div>
 
                                     </div>
                                 </div>
                             </div>
-                            <a show-for-role="CURATOR" ng-click="create('asset')">
+                            <a show-for-role="CURATOR" ng-click="create('asset')" id="createAssetsLink">
                                 <div class="panel-footer">
                                     <span class="pull-left">Create Asset</span>
                                     <span class="pull-right"><i class="fa fa-magic"></i></span>
