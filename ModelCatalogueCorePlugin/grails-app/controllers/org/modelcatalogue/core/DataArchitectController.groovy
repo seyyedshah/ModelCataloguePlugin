@@ -77,7 +77,7 @@ class DataArchitectController<T> extends AbstractRestfulController<T>{
 
     def getSubModelElements(){
         Long id = params.long('modelId') ?: params.long('id')
-        reportCapableRespond Lists.lazy(params, Model, "/dataArchitect/getSubModelElements", "elements")  {
+        reportCapableRespond Lists.lazy(params, DataElement, "/dataArchitect/getSubModelElements", "elements")  {
             if (id){
                 Model model = Model.get(id)
                 ListWithTotalAndType<Model> subModels = modelService.getSubModels(model)
@@ -138,6 +138,16 @@ class DataArchitectController<T> extends AbstractRestfulController<T>{
         }
 
         respond elements
+    }
+
+    def generateSuggestions() {
+        try {
+            dataArchitectService.generateMergeModelActions()
+            respond status: HttpStatus.OK
+        } catch (e) {
+            log.error("Error generating suggestions", e)
+            respond status: HttpStatus.BAD_REQUEST
+        }
     }
 
 
