@@ -16,9 +16,14 @@ import org.modelcatalogue.core.*
 import org.modelcatalogue.core.actions.TestAction
 import org.springframework.http.HttpMethod
 
+import java.security.DigestInputStream
+import java.security.MessageDigest
+
 class BootStrap {
 
-    def importService
+
+	def modelCatalogueStorageService
+	def importService
     def domainModellerService
     def initCatalogueService
     def publishedElementService
@@ -104,11 +109,21 @@ class BootStrap {
 
         environments {
             development {
-                try {
-                    println 'Running post init job'
-                    println 'Importing data'
-                    importService.importData()
-                    def classification =  new Classification(name: "nhic", namespace: "www.nhic.co.uk").save(failOnError: true)
+				addSampleRecords()
+            }
+			test{
+				addSampleRecords()
+			}
+        }
+
+    }
+
+	def addSampleRecords(){
+		try {
+			println 'Running post init job'
+			println 'Importing data'
+			importService.importData()
+			def classification =  new Classification(name: "nhic", namespace: "www.nhic.co.uk").save(failOnError: true)
 //                    def de = new DataElement(name: "testera", description: "test data architect", classifications: [classification]).save(failOnError: true)
 //                    de.ext.metadata = "test metadata"
 //
@@ -133,61 +148,137 @@ class BootStrap {
 //                    }
 //
 //
-                    println 'Finalizing all published elements'
-                    PublishedElement.findAllByStatusNotEqual(PublishedElementStatus.FINALIZED).each {
-                        if (it instanceof Model) {
-                            publishedElementService.finalizeTree(it)
-                        } else {
-                            it.status = PublishedElementStatus.FINALIZED
-                            it.save failOnError: true
-                        }
-                    }
+			println 'Finalizing all published elements'
+			PublishedElement.findAllByStatusNotEqual(PublishedElementStatus.FINALIZED).each {
+				if (it instanceof Model) {
+					publishedElementService.finalizeTree(it)
+				} else {
+					it.status = PublishedElementStatus.FINALIZED
+					it.save failOnError: true
+				}
+			}
 
-                    println "Creating some actions"
+			println "Creating some actions"
 
-                    Batch batch = new Batch(name: 'Test Batch').save(failOnError: true)
+			Batch batch = new Batch(name: 'Test Batch').save(failOnError: true)
 
-                    15.times {
-                        Action action
-                        if (it == 7) {
-                            action = actionService.create(batch, CreateCatalogueElement, two: Action.get(2), five: Action.get(5), six: Action.get(6), name: "Model #${it}", type: Model.name)
-                        } else if (it == 4) {
-                            action = actionService.create(batch, CreateCatalogueElement, two: Action.get(2), name: "Model #${it}", type: Model.name)
-                        } else {
-                            action = actionService.create(batch, CreateCatalogueElement, name: "Model #${it}", type: Model.name)
-                        }
-                        if (it % 3 == 0) {
-                            actionService.dismiss(action)
-                        }
-                    }
+			15.times {
+				Action action
+				if (it == 7) {
+					action = actionService.create(batch, CreateCatalogueElement, two: Action.get(2), five: Action.get(5), six: Action.get(6), name: "Model #${it}", type: Model.name)
+				} else if (it == 4) {
+					action = actionService.create(batch, CreateCatalogueElement, two: Action.get(2), name: "Model #${it}", type: Model.name)
+				} else {
+					action = actionService.create(batch, CreateCatalogueElement, name: "Model #${it}", type: Model.name)
+				}
+				if (it % 3 == 0) {
+					actionService.dismiss(action)
+				}
+			}
 
-                    def parent = new Model(name:"parent1", status: PublishedElementStatus.FINALIZED).save(flush:true)
-                    parent.addToChildOf(parent)
+			def parent = new Model(name:"parent1", status: PublishedElementStatus.FINALIZED).save(flush:true)
+			parent.addToChildOf(parent)
 
-                    assert !actionService.create(batch, TestAction, fail: true).hasErrors()
-                    assert !actionService.create(batch, TestAction, fail: true, timeout: 10000).hasErrors()
-                    assert !actionService.create(batch, TestAction, timeout: 5000, result: "the result").hasErrors()
-                    assert !actionService.create(batch, TestAction, test: actionService.create(batch, TestAction, fail: true, timeout: 3000)).hasErrors()
-
-
-                    Action createRelationshipAction = actionService.create(batch, CreateRelationship, source: MeasurementUnit.findByName("celsius"), destination: MeasurementUnit.findByName("fahrenheit"), type: RelationshipType.findByName('relatedTo'))
-                    if (createRelationshipAction.hasErrors()) {
-                        println createRelationshipAction.errors
-                        throw new AssertionError("Failed to create relationship actions!")
-                    }
+			assert !actionService.create(batch, TestAction, fail: true).hasErrors()
+			assert !actionService.create(batch, TestAction, fail: true, timeout: 10000).hasErrors()
+			assert !actionService.create(batch, TestAction, timeout: 5000, result: "the result").hasErrors()
+			assert !actionService.create(batch, TestAction, test: actionService.create(batch, TestAction, fail: true, timeout: 3000)).hasErrors()
 
 
-                    setupSimpleCsvTransformation()
+			Action createRelationshipAction = actionService.create(batch, CreateRelationship, source: MeasurementUnit.findByName("celsius"), destination: MeasurementUnit.findByName("fahrenheit"), type: RelationshipType.findByName('relatedTo'))
+			if (createRelationshipAction.hasErrors()) {
+				println createRelationshipAction.errors
+				throw new AssertionError("Failed to create relationship actions!")
+			}
 
-                    println "Init finished in ${new Date()}"
-                } catch (e) {
-                    e.printStackTrace()
-                }
-                //domainModellerService.modelDomains()
-            }
-        }
 
-    }
+			setupSimpleCsvTransformation()
+
+			println "Init finished in ${new Date()}"
+		} catch (e) {
+			e.printStackTrace()
+		}
+
+
+
+		addDraftAsset();
+		addFinalizedAsset();
+
+
+		//domainModellerService.modelDomains()
+	}
+
+
+
+	private addDraftAsset(){
+
+		String contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+
+		//Add Draft asset
+		URL layoutResource = this.class.getResource("/excelLayouts/defaultLayout.xlsx")
+		File file = new File(layoutResource.file)
+
+
+		Asset asset = new Asset()
+		asset.name              = "DraftDefaultLayout"
+		asset.description       = "Test asset"
+		asset.contentType       = contentType
+		asset.size              = file.size()
+		asset.originalFileName  = file.name
+		asset.validate()
+		if (asset.hasErrors()) {
+			return
+		}
+		asset.save()
+
+
+
+		DigestInputStream dis = null
+		MessageDigest md5 = MessageDigest.getInstance('MD5')
+		InputStream stream = new FileInputStream(layoutResource.file);
+		dis = new DigestInputStream(stream , md5)
+		org.apache.commons.io.input.CountingInputStream countingInputStream = new org.apache.commons.io.input.CountingInputStream(dis)
+		modelCatalogueStorageService.store('assets', asset.modelCatalogueId, contentType, { OutputStream it -> it << countingInputStream })
+
+		asset.md5 = org.springframework.util.DigestUtils.md5DigestAsHex(md5.digest())
+		asset.size = countingInputStream.byteCount
+		asset.save()
+
+	}
+
+	private addFinalizedAsset(){
+
+		String contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+
+		//Add Draft asset
+		URL layoutResource = this.class.getResource("/excelLayouts/defaultLayout.xlsx")
+		File file = new File(layoutResource.file)
+		Asset asset = new Asset()
+		asset.name              = "defaultLayout"
+		asset.description       = "Test asset"
+		asset.contentType       = contentType
+		asset.size              = file.size()
+		asset.originalFileName  = file.name
+		asset.status = PublishedElementStatus.FINALIZED
+
+		asset.validate()
+		if (asset.hasErrors()) {
+			return
+		}
+		asset.save()
+
+		DigestInputStream dis = null
+		MessageDigest md5 = MessageDigest.getInstance('MD5')
+		InputStream stream = new FileInputStream(layoutResource.file);
+		dis = new DigestInputStream(stream , md5)
+		org.apache.commons.io.input.CountingInputStream countingInputStream = new org.apache.commons.io.input.CountingInputStream(dis)
+		modelCatalogueStorageService.store('assets', asset.modelCatalogueId, contentType, { OutputStream it -> it << countingInputStream })
+
+		asset.md5 = org.springframework.util.DigestUtils.md5DigestAsHex(md5.digest())
+		asset.size = countingInputStream.byteCount
+		asset.save()
+	}
+
 
     def setupSimpleCsvTransformation() {
         MeasurementUnit c = MeasurementUnit.findByName("celsius")
