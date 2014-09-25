@@ -120,7 +120,6 @@ class BootStrap {
 				addSampleRecords()
 			}
         }
-
     }
 
 	def addSampleRecords(){
