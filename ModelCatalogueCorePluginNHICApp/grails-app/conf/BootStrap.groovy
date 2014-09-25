@@ -27,20 +27,7 @@ class BootStrap {
         initCatalogueService.initDefaultDataTypes()
         initCatalogueService.initDefaultMeasurementUnits()
 
-        xlsxListRenderer.registerRowWriter('reversed') {
-            title "Reversed DEMO Export"
-            append metadata
-            headers 'Description', 'Name', 'ID'
-            when { ListWrapper container, RenderContext context ->
-                context.actionName in ['index', 'search'] && container.itemType && CatalogueElement.isAssignableFrom(container.itemType)
-            } then { CatalogueElement element ->
-                [[element.description, element.name, element.id]]
-            }
-        }
-
-
-		if(Requestmap.count()==0)
-			configureRequestMap()
+		configureRequestMap()
 
 		//default roles : ROLE_USER, ROLE_ADMIN, ROLE_METADATA_CURATOR
 		createRoles()
