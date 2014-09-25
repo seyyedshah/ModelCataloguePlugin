@@ -65,15 +65,8 @@ class ActionService {
 
         Callable<ActionResult> job = {
             try {
-                Action a
+                Action a = Action.get(id)
                 
-                try {
-                    a = Action.lock(id)
-                } catch (UnsupportedOperationException ignored) {
-                    a = Action.get(id)
-                }
-
-
                 StringWriter sw = new StringWriter()
                 PrintWriter pw = new PrintWriter(sw)
 
@@ -283,6 +276,14 @@ class ActionService {
             eq 'batch', batch
             sort 'lastUpdated', 'asc'
         }
+    }
+
+    int resetAllRunningActions() {
+        // TODO: create test
+        def criteria = new DetachedCriteria(Action).build {
+            eq 'state', ActionState.PERFORMING
+        }
+        criteria.updateAll(state: ActionState.PENDING)
     }
 
     /**

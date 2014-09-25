@@ -3,6 +3,10 @@ package org.modelcatalogue.core.dataarchitect
 import au.com.bytecode.opencsv.CSVReader
 import au.com.bytecode.opencsv.CSVWriter
 import org.modelcatalogue.core.*
+import org.modelcatalogue.core.actions.Batch
+import org.modelcatalogue.core.actions.MergePublishedElements
+import org.modelcatalogue.core.actions.Action
+import org.modelcatalogue.core.actions.ActionState
 import org.modelcatalogue.core.util.ListAndCount
 import org.modelcatalogue.core.util.ListWithTotal
 import org.modelcatalogue.core.util.Lists
@@ -10,7 +14,10 @@ import org.modelcatalogue.core.util.SecuredRuleExecutor
 
 class DataArchitectService {
 
-    def modelCatalogueSearchService, relationshipService
+    def modelCatalogueSearchService
+    def relationshipService
+    def publishedElementService
+    def actionService
 
     ListWithTotal<DataElement> uninstantiatedDataElements(Map params){
         Lists.fromCriteria(params, DataElement) {
@@ -191,6 +198,29 @@ class DataArchitectService {
 
     }
 
+    ListWithTotal<ValueDomain> unusedValueDomains(Map params) {
+        // TODO: create test
+        Lists.fromQuery params, ValueDomain, """
+            from ValueDomain v
+            where
+                v.id in (select vd.id from ValueDomain vd left join vd.dataElements de group by vd.id having count(de.id) = sum(case when de.status = :archived then 1 else 0 end))
+            order by v.name asc, v.dateCreated asc
+        """, [archived: PublishedElementStatus.ARCHIVED]
+    }
+
+    ListWithTotal<ValueDomain> duplicateValueDomains(Map params) {
+        // TODO: create test
+        Lists.fromQuery params, ValueDomain, """
+            from ValueDomain v
+            where
+                v.id in (select vd.id from ValueDomain vd left join vd.dataElements de group by vd.id having count(de.id) = sum(case when de.status = :archived then 1 else 0 end))
+            and
+                v.name in (select vd.name from ValueDomain vd group by vd.name having count(vd.name) > 1)
+            order by v.name asc, v.dateCreated asc
+
+        """, [archived: PublishedElementStatus.ARCHIVED]
+    }
+
     /**
      * Finds mapping between selected data elements or Mapping#DIRECT_MAPPING.
      * @param source source data element
@@ -206,5 +236,43 @@ class DataArchitectService {
             return mapping.mapper()
         }
         return null
+    }
+
+    def generateMergeModelActions() {
+        // clean old batches
+        Closure reset = { Batch batch ->
+            for (Action action in new HashSet<Action>(batch.actions)) {
+                if (action.state in [ActionState.FAILED, ActionState.PENDING]) {
+                    batch.removeFromActions(action)
+                    action.batch = null
+                    action.delete(flush: true)
+                }
+            }
+            batch.archived =  true
+            batch.save()
+        }
+
+        Batch.findAllByNameIlike("Merge Model '%'").each reset
+        Batch.findAllByNameIlike("Merge Data Element '%'").each reset
+
+        publishedElementService.findDuplicateDataElementsSuggestions().each { destId, sources ->
+            DataElement dataElement = DataElement.get(destId)
+            Batch batch = Batch.findOrSaveByName("Merge Data Element '$dataElement.name'")
+            sources.each { srcId ->
+                actionService.create batch, MergePublishedElements, source: "gorm://org.modelcatalogue.core.DataElement:$srcId", destination: "gorm://org.modelcatalogue.core.DataElement:$destId", deep: true
+            }
+            batch.archived = false
+            batch.save()
+        }
+
+        publishedElementService.findDuplicateModelsSuggestions().each { destId, sources ->
+            Model model = Model.get(destId)
+            Batch batch = Batch.findOrSaveByName("Merge Model '$model.name'")
+            sources.each { srcId ->
+                actionService.create batch, MergePublishedElements, source: "gorm://org.modelcatalogue.core.Model:$srcId", destination: "gorm://org.modelcatalogue.core.Model:$destId", deep: true
+            }
+            batch.archived = false
+            batch.save()
+        }
     }
 }

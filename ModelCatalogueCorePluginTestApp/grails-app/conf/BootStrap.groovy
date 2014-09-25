@@ -33,16 +33,16 @@ class BootStrap {
 
         initCatalogueService.initCatalogue()
 
-        xlsxListRenderer.registerRowWriter('reversed') {
-            title "Reversed DEMO Export"
-            append metadata
-            headers 'Description', 'Name', 'ID'
-            when { ListWrapper container, RenderContext context ->
-                context.actionName in ['index', 'search'] && container.itemType && CatalogueElement.isAssignableFrom(container.itemType)
-            } then { CatalogueElement element ->
-                [[element.description, element.name, element.id]]
-            }
-        }
+//        xlsxListRenderer.registerRowWriter('reversed') {
+//            title "Reversed DEMO Export"
+//            append metadata
+//            headers 'Description', 'Name', 'ID'
+//            when { ListWrapper container, RenderContext context ->
+//                context.actionName in ['index', 'search'] && container.itemType && CatalogueElement.isAssignableFrom(container.itemType)
+//            } then { CatalogueElement element ->
+//                [[element.description, element.name, element.id]]
+//            }
+//        }
 
         def roleUser = Role.findByAuthority('ROLE_USER') ?: new Role(authority: 'ROLE_USER').save(failOnError: true)
         def roleAdmin = Role.findByAuthority('ROLE_ADMIN') ?: new Role(authority: 'ROLE_ADMIN').save(failOnError: true)
@@ -95,6 +95,11 @@ class BootStrap {
         createRequestmapIfMissing('/api/modelCatalogue/core/*/**', 'ROLE_METADATA_CURATOR',        org.springframework.http.HttpMethod.PUT)
         createRequestmapIfMissing('/api/modelCatalogue/core/*/**', 'ROLE_METADATA_CURATOR',        org.springframework.http.HttpMethod.DELETE)
 
+
+        createRequestmapIfMissing('/console/**',                   'ROLE_ADMIN')
+        createRequestmapIfMissing('/dbconsole/**',                 'ROLE_ADMIN')
+        createRequestmapIfMissing('/plugins/console-1.5.0/**',     'ROLE_ADMIN')
+
 //        createRequestmapIfMissing('/api/modelCatalogue/core/model/**', 'IS_AUTHENTICATED_ANONYMOUSLY')
 //        createRequestmapIfMissing('/api/modelCatalogue/core/dataElement/**', 'ROLE_METADATA_CURATOR')
 //        createRequestmapIfMissing('/api/modelCatalogue/core/dataType/**', 'ROLE_USER')
@@ -105,6 +110,7 @@ class BootStrap {
 
         environments {
             development {
+                actionService.resetAllRunningActions()
                 try {
                     println 'Running post init job'
                     println 'Importing data'
@@ -185,6 +191,9 @@ class BootStrap {
                     e.printStackTrace()
                 }
                 //domainModellerService.modelDomains()
+            }
+            test {
+                actionService.resetAllRunningActions()
             }
         }
 
