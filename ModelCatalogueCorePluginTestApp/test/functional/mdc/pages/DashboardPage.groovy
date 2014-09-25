@@ -31,7 +31,7 @@ class DashboardPage extends BasePageWithNav{
 
 
 		valueDomainLink(required:false) {waitFor {$("a#valueDomainLink")}}
-		incompleteValueDomainLink(required:false) {waitFor {$("a#incompleteValueDomainLink")}}
+		//incompleteValueDomainLink(required:false) {waitFor {$("a#incompleteValueDomainLink")}}
 		createValueDomainsLink(required:false) {waitFor {$("a#createValueDomainsLink")}}
 
 

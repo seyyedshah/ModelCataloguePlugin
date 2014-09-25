@@ -34,7 +34,7 @@ class DashboardSpec extends GebReportingSpec {
 		conceptualDomainsLink.displayed
 
 		valueDomainLink.displayed
-		incompleteValueDomainLink.displayed
+		//incompleteValueDomainLink.displayed
 
 
 		dataTypesLink.displayed
@@ -82,7 +82,7 @@ class DashboardSpec extends GebReportingSpec {
 		conceptualDomainsLink.displayed
 
 		valueDomainLink.displayed
-		incompleteValueDomainLink.displayed
+		//incompleteValueDomainLink.displayed
 
 
 		dataTypesLink.displayed
