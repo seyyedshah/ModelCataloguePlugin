@@ -11,7 +11,7 @@ class DataElementShowPage extends BasePageWithNav {
 
 	static at = {
 		url == "#/catalogue/dataElement/" &&
-		title ==~ /^Properties of .* \(Data Element\)$/
+		title ==~ /^Properties of .*$/
 	}
 
 	static content = {
@@ -27,6 +27,7 @@ class DataElementShowPage extends BasePageWithNav {
 		propertiesTable(required:false) {waitFor {$("table#Properties")}}
 		modelsTable {waitFor {$("div#-isContextFor table")}}
 		relationshipsTable {waitFor {$("div#-relationships table")}}
+		metadataTable {waitFor {$("table#Metadata")}}
 
 	}
 }

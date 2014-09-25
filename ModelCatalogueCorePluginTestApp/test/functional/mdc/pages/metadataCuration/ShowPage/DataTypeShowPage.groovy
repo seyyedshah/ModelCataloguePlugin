@@ -11,7 +11,7 @@ class DataTypeShowPage extends BasePageWithNav {
 
 	static at = {
 		url == "#/catalogue/dataType/" &&
-		title == "Metadata Registry"
+				title ==~ /^Properties of .*$/
 	}
 
 	static content = {

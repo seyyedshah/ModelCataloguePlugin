@@ -11,7 +11,7 @@ class ConceptualDomainShowPage extends BasePageWithNav{
 
 	static at = {
 		url == "#/catalogue/conceptualDomain/" &&
-		title ==~ /^Properties of .* \(Conceptual Domain\)$/
+		title ==~ /^Properties of .*$/
 	}
 
 	static content = {

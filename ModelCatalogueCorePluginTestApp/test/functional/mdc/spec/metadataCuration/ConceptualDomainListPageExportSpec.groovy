@@ -2,28 +2,26 @@ package mdc.spec.metadataCuration
 
 import geb.spock.GebReportingSpec
 import mdc.pages.DashboardPage
-import mdc.pages.authentication.LoginPage
 import mdc.pages.metadataCuration.ListPage.ConceptualDomainListPage
-import mdc.pages.metadataCuration.ListPage.ModelListPage
 import mdc.pages.metadataCuration.ShowPage.AssetShowPage
-import mdc.pages.metadataCuration.ShowPage.ConceptualDomainShowPage
 
 /**
  * Created by soheil on 17/05/2014.
  */
 class ConceptualDomainListPageExportSpec extends GebReportingSpec {
 
-	def setup() {
-		to LoginPage
-		loginReadOnlyUser()
-		waitFor {
-			at ModelListPage
-		}
-	}
-
 	def "Clicking on exportButton in conceptualDomain list page will show the list of available reports"() {
 
 		setup:"Go to conceptualDomain page as a List page that contains ExportButton"
+		to DashboardPage
+		waitFor {
+			at DashboardPage
+		}
+		loginAsViewer()
+		waitFor {
+			at DashboardPage
+		}
+
 		to ConceptualDomainListPage
 
 		when: "at conceptualDomainList Page"
@@ -35,7 +33,7 @@ class ConceptualDomainListPageExportSpec extends GebReportingSpec {
 		//as GEB used to fail on accessing 'exportButtonContent',
 		//I had to add this check here
 		waitFor{
-			$("h2",text:"Conceptual Domain List").displayed
+			$("h2",text:contains("Conceptual Domain List")).displayed
 		}
 
 		waitFor {
@@ -57,6 +55,15 @@ class ConceptualDomainListPageExportSpec extends GebReportingSpec {
 	def "ExportButton in conceptualDomain list page will export conceptualDomain list as an excel file"() {
 
 		setup:"Go to conceptualDomain page as a List page that contains ExportButton"
+		to DashboardPage
+		waitFor {
+			at DashboardPage
+		}
+		loginAsViewer()
+		waitFor {
+			at DashboardPage
+		}
+
 		to ConceptualDomainListPage
 
 		when: "at conceptualDomainList Page"
@@ -68,7 +75,7 @@ class ConceptualDomainListPageExportSpec extends GebReportingSpec {
 		//as GEB used to fail on accessing 'exportButtonContent',
 		//I had to add this check here
 		waitFor{
-			$("h2",text:"Conceptual Domain List").displayed
+			$("h2",text:contains("Conceptual Domain List")).displayed
 		}
 
 		waitFor {

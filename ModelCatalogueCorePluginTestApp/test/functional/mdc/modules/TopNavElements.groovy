@@ -10,10 +10,11 @@ class TopNavElements extends Module {
 	static String logoutButton ="form.navbar-form.navbar-right button#logoutButton"
 
 
+	static String catalogueElementLink = "ul.nav.navbar-nav li.dropdown a.dropdown-toggle"
 	static String  classificationLink  = "li a#navbar-classification-menu-item-link"
 	static String  modelLink		   = "li a#navbar-model-menu-item-link"
 	static String  dataElementLink 	   = "li a#navbar-dataElement-menu-item-link"
-	static String conceptualDomainLink = "li a#navbar-classification-menu-item-link"
+	static String conceptualDomainLink = "li a#navbar-conceptualDomain-menu-item-link"
 	static String  valueDomainLink     = "li a#navbar-valueDomain-menu-item-link"
 	static String  dataTypeLink    	   = "li a#navbar-dataType-menu-item-link"
 	static String  measurementUnitLink = "li a#navbar-measurementUnit-menu-item-link"

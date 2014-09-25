@@ -1,7 +1,6 @@
 package mdc.spec.metadataCuration
 
 import geb.spock.GebReportingSpec
-import mdc.pages.authentication.LoginPage
 import mdc.pages.metadataCuration.ListPage.ModelListPage
 import mdc.pages.metadataCuration.ShowPage.ModelShowPage
 
@@ -10,22 +9,21 @@ import mdc.pages.metadataCuration.ShowPage.ModelShowPage
  */
 class ModelShowPageSpec extends GebReportingSpec {
 
-
-	def setup() {
-		to LoginPage
-		loginReadOnlyUser()
-		waitFor {
-			at ModelListPage
-		}
-	}
-
-
 	def "At modelShowPage, it shows model properties, conceptualDomains, metadata and dataElements"() {
+
 		when: "Click on a model"
+		to ModelListPage
 		waitFor {
 			at ModelListPage
 		}
-		goToModelShowPage()
+		//NHIC Datasets
+		waitFor {
+			getModelInTreeView(0)["Name"].displayed
+		}
+		def element = getModelInTreeView(0)
+		interact {
+			doubleClick(element["Name"])
+		}
 
 		then: "its properties, conceptualDomains and dataElements will be displayed"
 		waitFor {
@@ -34,12 +32,11 @@ class ModelShowPageSpec extends GebReportingSpec {
 		waitFor {
 			propertiesTab.displayed
 		}
-
 		waitFor {
-			childOfTab.displayed
+			childrenTab.displayed
 		}
 		waitFor {
-			conceptualDomainTab.displayed
+			coceptualDomainsTab.displayed
 		}
 		waitFor {
 			dataElementsTab.displayed
@@ -48,33 +45,7 @@ class ModelShowPageSpec extends GebReportingSpec {
 			metadataTab.displayed
 		}
 		waitFor {
-			parentOfTab.displayed
-		}
-		waitFor {
-			finalizedIcon.displayed
-		}
-		waitFor {
-			finalizedIcon.text() == "FINALIZED"
+			propertiesTab.displayed
 		}
 	}
-
-	def "At modelShowPage for a Draft Model, it shows Draft icon" (){
-		when: "Click on a model"
-		waitFor {
-			at ModelListPage
-		}
-		goToDraftModelShowPage()
-
-		then: "Draft icon is displayed"
-		waitFor {
-			at ModelShowPage
-		}
-		waitFor {
-			draftIcon.displayed
-		}
-		waitFor {
-			draftIcon.text() == "DRAFT"
-		}
-	}
-
 }

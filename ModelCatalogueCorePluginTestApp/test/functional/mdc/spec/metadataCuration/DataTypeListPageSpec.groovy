@@ -1,14 +1,7 @@
 package mdc.spec.metadataCuration
 
 import geb.spock.GebReportingSpec
-import mdc.pages.DashboardPage
-import mdc.pages.authentication.LoginPage
-import mdc.pages.metadataCuration.ListPage.ConceptualDomainListPage
-import mdc.pages.metadataCuration.ListPage.DataElementListPage
 import mdc.pages.metadataCuration.ListPage.DataTypeListPage
-import mdc.pages.metadataCuration.ListPage.ModelListPage
-import mdc.pages.metadataCuration.ShowPage.ConceptualDomainShowPage
-import mdc.pages.metadataCuration.ShowPage.DataElementShowPage
 import mdc.pages.metadataCuration.ShowPage.DataTypeShowPage
 
 /**
@@ -29,7 +22,7 @@ class DataTypeListPageSpec extends GebReportingSpec {
 			getRow(0)["object"].displayed
 		}
 
-		def nameElement = getRow(0)["name"]
+		def nameElement = getRow(1)["name"]
 		waitFor {
 			nameElement.displayed
 		}
@@ -43,7 +36,7 @@ class DataTypeListPageSpec extends GebReportingSpec {
 			mainLabel.displayed
 			description.displayed
 		}
-		mainLabel.text() == "Boolean (Data Type: 4)"
+		mainLabel.text() == "Boolean"
 		description.text() == "java.lang.Boolean"
 	}
 }

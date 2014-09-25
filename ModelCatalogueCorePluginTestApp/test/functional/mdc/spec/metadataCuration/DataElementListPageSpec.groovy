@@ -2,7 +2,6 @@ package mdc.spec.metadataCuration
 
 import geb.spock.GebReportingSpec
 import spock.lang.Stepwise
-import  mdc.pages.authentication.LoginPage
 import  mdc.pages.metadataCuration.ListPage.DataElementListPage
 import  mdc.pages.metadataCuration.ListPage.ModelListPage
 import  mdc.pages.metadataCuration.ShowPage.AssetShowPage

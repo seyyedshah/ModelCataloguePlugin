@@ -2,9 +2,6 @@ package mdc.spec.metadataCuration
 
 import geb.spock.GebReportingSpec
 import mdc.pages.metadataCuration.ListPage.DataElementListPage
-import spock.lang.Stepwise
-import mdc.pages.authentication.LoginPage
-import mdc.pages.metadataCuration.ListPage.ModelListPage
 import mdc.pages.metadataCuration.ShowPage.DataElementShowPage
 
 /**
@@ -36,13 +33,10 @@ class DataElementShowPageSpec extends GebReportingSpec {
 			mainLabel.displayed
 		}
 		mainLabel.text().contains("ANATOMICAL SIDE (IMAGING)* FINALIZED")
-		description.text().contains("*IMAGING CODE (NICIP) ")
+		description.text().contains("*IMAGING CODE (NICIP)")
 
 		waitFor {
 			propertiesTab.displayed
-		}
-		waitFor {
-			valueDomainsTab.displayed
 		}
 		waitFor {
 			metadataTab.displayed
@@ -68,6 +62,7 @@ class DataElementShowPageSpec extends GebReportingSpec {
 			$(DataElementListPage.elementsTable).displayed
 		}
 
+
 		def elementCatalogueId = getRow(0)["catalogueId"]
 		waitFor {
 			elementCatalogueId.displayed
@@ -75,50 +70,22 @@ class DataElementShowPageSpec extends GebReportingSpec {
 
 		elementCatalogueId.click()
 
+
 		waitFor{
 			at DataElementShowPage
 			mainLabel.displayed
 		}
 		mainLabel.text().contains("ANATOMICAL SIDE (IMAGING)* FINALIZED")
-		description.text().contains("*IMAGING CODE (NICIP) ")
-
-
-		when:"Clicking on properties Tab"
-		waitFor {
-			propertiesTab.displayed
-			propertiesTab.find("a").displayed
-		}
-		interact {
-			click(propertiesTab.find("a"))
-		}
-
-		then:"properties Table will be displayed"
-		waitFor {
-			propertiesTable.displayed
-		}
-
-
-		when:"Clicking on valueDomains Tab"
-		waitFor {
-			valueDomainsTab.displayed
-			valueDomainsTab.find("a").displayed
-		}
-		valueDomainsTab.find("a").click()
-
-
-		then:"valueDomains Table will be displayed"
-		waitFor {
-			valueDomainsTable.displayed
-		}
+		description.text().contains("*IMAGING CODE (NICIP)")
 
 
 		when:"Clicking on metadata Tab"
 		waitFor {
 			metadataTab.displayed
-			metadataTab.find("a")
+			metadataTab.parent()
 		}
 		interact {
-			click(metadataTab.find("a"))
+			click(metadataTab.parent())
 		}
 
 		then:"metadata Table will be displayed"
@@ -126,14 +93,13 @@ class DataElementShowPageSpec extends GebReportingSpec {
 			metadataTable.displayed
 		}
 
-
 		when:"Clicking on relatedTo Tab"
-		relationshipsTab.find("a").click()
+		//metadataTab.parent() this item is <a> tag
+		relationshipsTab.parent().click()
 
 		then:"relatedTo Table will be displayed"
 		waitFor {
 			relationshipsTable.displayed
 		}
 	}
-
 }

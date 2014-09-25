@@ -13,9 +13,7 @@ class AssetShowPage extends BasePageWithNav{
 
 	static at = {
 		url == "#/catalogue/asset/" &&
-		title ==~ /^Properties of .* \(Asset\)$/
-		//it should mathce titles like:Properties of Import for ALL_COSDBreast_XMLSchema-v5-0-4r.xsd (Asset)
-		// Properties of _____ (Asset)
+		title ==~ /^Properties of .*$/
 	}
 
 	static content = {

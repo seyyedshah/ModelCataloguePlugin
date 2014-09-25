@@ -12,20 +12,20 @@ class ModelShowPage extends BasePageWithNav{
 
 	static at = {
 		url == "#/catalogue/model/" &&
-		title == "Metadata Registry"
+				title ==~ /^Properties of .*$/
 	}
 
 	static content = {
 		mainLabel(wait:true) { $("h3.ce-name") }
 
-		propertiesTab {waitFor {$("div.tabbable ul li[heading='Properties']")}}
-		childOfTab{waitFor { $("div.tabbable ul li[heading='Parent']")}}
 
-		conceptualDomainTab {waitFor { $("div.tabbable ul li[heading='Conceptual Domains']")}}
-		dataElementsTab {waitFor { $("div.tabbable ul li[heading='Data Elements']")}}
 
-		metadataTab {waitFor { $("div.tabbable ul li[heading='Metadata']")}}
-		parentOfTab {waitFor { $("div.tabbable ul li[heading='Children']")}}
+		propertiesTab {waitFor {$("div.tabbable ul li a tab-heading", text:'Properties')}}
+		attachmentTab {waitFor {$("div.tabbable ul li a tab-heading", text:'Attachments')}}
+		childrenTab {waitFor {$("div.tabbable ul li a tab-heading", text:contains('Children'))}}
+		coceptualDomainsTab {waitFor {$("div.tabbable ul li a tab-heading", text:contains('Conceptual Domains'))}}
+		dataElementsTab {waitFor {$("div.tabbable ul li a tab-heading", text:'Data Elements')}}
+		metadataTab {waitFor {$("div.tabbable ul li a tab-heading", text:'Metadata')}}
 
 		draftIcon     {waitFor {$("h3 span.label-warning")}}
 		finalizedIcon {waitFor {$("h3 span.label-primary")}}

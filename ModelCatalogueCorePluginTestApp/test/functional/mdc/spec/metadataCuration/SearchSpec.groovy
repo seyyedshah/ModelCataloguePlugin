@@ -48,7 +48,7 @@ class SearchSpec  extends GebReportingSpec{
 		$(nav.searchResultUl).find("li",0).text().trim().contains("Search Catalogue Element for ANATOMICAL")
 		$(nav.searchResultUl).find("li",1).text().trim().contains("Validate ANATOMICAL")
 		$(nav.searchResultUl).find("li",2).text().trim().contains("Convert ANATOMICAL")
-		$(nav.searchResultUl).find("li",3).text().trim().contains("IMAGING CODE (NICIP)* (Data Element)")
+		$(nav.searchResultUl).find("li",3).text().trim().contains("IMAGING CODE (NICIP)*")
 	}
 
 	def "Clicking on a returned result from search will lead us to that element"(){
@@ -71,7 +71,7 @@ class SearchSpec  extends GebReportingSpec{
 		}
 
 		waitFor {
-			$(nav.searchResultUl).find("li",3).text().trim().contains("IMAGING CODE (NICIP)* (Data Element)")
+			$(nav.searchResultUl).find("li",3).text().trim().contains("IMAGING CODE (NICIP)*")
 		}
 
 		waitFor {

@@ -1,7 +1,6 @@
 package mdc.spec.authentication;
 import geb.spock.GebReportingSpec
 import mdc.pages.DashboardPage;
-import mdc.pages.authentication.LoginPage
 
 class UserLoginSpec extends GebReportingSpec {
 
