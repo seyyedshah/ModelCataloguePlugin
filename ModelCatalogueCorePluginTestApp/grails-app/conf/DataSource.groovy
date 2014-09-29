@@ -23,6 +23,11 @@ environments {
         dataSource {
             dbCreate = "create-drop"
 			url = "jdbc:h2:mem:testDb;MVCC=TRUE;LOCK_TIMEOUT=10000;DB_CLOSE_ON_EXIT=FALSE"
+//            dbCreate = "update"
+//            url = "jdbc:mysql://localhost:3306/modelcatalogue-core-testapp?autoReconnect=true&useUnicode=yes"
+//            username = System.getenv('METADATA_DB_USERNAME')
+//            password = System.getenv('METADATA_DB_PASSWORD')
+//            driverClassName = "com.mysql.jdbc.Driver"
         }
     }
     production {
