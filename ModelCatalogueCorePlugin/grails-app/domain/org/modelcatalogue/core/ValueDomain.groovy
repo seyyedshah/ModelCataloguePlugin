@@ -1,6 +1,7 @@
 package org.modelcatalogue.core
 
 import org.modelcatalogue.core.util.SecuredRuleExecutor
+import org.modelcatalogue.core.util.ValueDomainRuleScript
 
 /*
 * subjects, isbn, rating
@@ -66,14 +67,14 @@ class ValueDomain extends ExtendibleElement  {
 
 		rule nullable:true, maxSize: 10000, validator: { val,obj ->
             if(!val){return true}
-            SecuredRuleExecutor.ValidationResult result = new SecuredRuleExecutor(x: null, domain: obj).validate(val)
+            SecuredRuleExecutor.ValidationResult result = new SecuredRuleExecutor(ValueDomainRuleScript, new Binding(x: null, domain: obj)).validate(val)
             result ? true : ['wontCompile', result.compilationFailedMessage]
         }
     }
 
     static relationships = [
-        incoming: [base: 'basedOn', union: 'unitedIn'],
-        outgoing: [base: 'isBaseFor', union: 'unionOf']
+        incoming: [base: 'basedOn'],
+        outgoing: [base: 'isBaseFor']
     ]
 
     String getClassifiedName() {
@@ -105,8 +106,17 @@ class ValueDomain extends ExtendibleElement  {
                 return false
             }
         }
+        if (hasProperty('basedOn')) {
+            for (ValueDomain domain in basedOn) {
+                def result = domain.validateRule(x)
+                if (result && (!(result instanceof Boolean) || result.is(false))) {
+                    return result
+                }
+            }
+
+        }
         if (!rule) return true
-        new SecuredRuleExecutor(x: x, domain: this).execute(rule)
+        new SecuredRuleExecutor(ValueDomainRuleScript, new Binding(x: x, domain: this)).execute(rule)
     }
 
 
