@@ -1,5 +1,6 @@
 <html>
 <head>
+    <title><g:message code='spring.security.ui.resetPassword.title'/></title>
     <asset:stylesheet href="metaDataCurator.css"/>
     <asset:stylesheet href="application.css"/>
     <asset:javascript src="angular/angular.js"/>
@@ -28,6 +29,7 @@
                 <div class="panel panel-default">
                     <!-- Default panel contents -->
                     <div class="panel-heading">
+                        <g:message code='spring.security.ui.resetPassword.title'/>
                     </div>
 
                     <div class="panel-body">
