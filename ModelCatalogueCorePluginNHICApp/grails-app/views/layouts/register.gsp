@@ -45,7 +45,6 @@ the explicit tags above and edit those, not the taglib code.
 <g:javascript src='spring-security-ui.js' plugin='spring-security-ui'/>
 --%>
 
-<s2ui:showFlash/>
 
 </body>
 </html>
