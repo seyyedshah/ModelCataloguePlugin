@@ -151,6 +151,9 @@ log4j = {
 	//    console name:'stdout', layout:pattern(conversionPattern: '%c{2} %m%n')
 	//}
 
+	debug 'grails.app.services.org.modelcatalogue.core.PublishedElementService'
+	debug 'org.modelcatalogue.core.dataarchitect.xsd.XSDImporter'
+
 //    debug 'org.modelcatalogue'
 //    debug 'org.codehaus.groovy.grails.web.mapping'
 //    debug 'org.springframework.security'
