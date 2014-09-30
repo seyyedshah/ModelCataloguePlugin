@@ -1,7 +1,7 @@
 angular.module('mc.core.ui.bs.batchView', ['mc.core.ui.batchView', 'mc.core.ui.decoratedList',  'mc.core.ui.propertiesPane', 'mc.core.ui.simpleObjectEditor', 'mc.util.ui.bs.contextualActions' , 'ui.bootstrap', 'ngSanitize']).run [ '$templateCache', ($templateCache) ->
     $templateCache.put 'modelcatalogue/core/ui/batchView.html', '''
     <div>
-      <span class="pull-right">
+      <span class="contextual-actions-right">
         <contextual-actions size="sm" no-colors="true"></contextual-actions>
       </span>
       <h3 class="ce-name">{{batch.name}} <small ng-show="batch.getElementTypeName()"><span class="label" ng-show="batch.archived" ng-class="{'label-danger': batch.archived}">{{batch.status}}</span> (created {{batch.dateCreated | date:'short'}})</small></h3>
