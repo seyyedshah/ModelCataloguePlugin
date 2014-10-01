@@ -619,7 +619,7 @@ angular.module('mc.core.ui.states.defaultStates', ['ui.router', 'mc.util.ui'])
     <div ng-if="resource == 'model' &amp;&amp; $stateParams.display == undefined">
       <div class="row">
         <div class="col-md-4">
-          <h2>
+          <h2 class="text-left">
             <small ng-class="catalogue.getIcon('model')"></small>&nbsp; Models
             <span class="contextual-actions-right">
             <contextual-actions size="sm" icon-only="true" no-colors="true"></contextual-actions>
