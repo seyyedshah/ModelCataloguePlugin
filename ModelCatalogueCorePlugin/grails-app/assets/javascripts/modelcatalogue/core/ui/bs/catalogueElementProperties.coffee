@@ -2,30 +2,30 @@ angular.module('mc.core.ui.bs.catalogueElementProperties', []).config ['catalogu
 
 
   localNameAndIdent = -> [
-    {header: 'Name',            value: "ext.name || ext.Name || relation.name ",                                 classes: 'col-md-5', show: "relation.show()"}
-    {header: 'Identification',  value: "relation.getElementTypeName() + ': ' + relation.id", classes: 'col-md-5', show: "relation.show()"}
+    {header: 'Name',            value: "ext.name || ext.Name || relation.name ",                                 classes: 'col-md-5', show: "relation.show()", href: 'relation.href()', href: 'relation.href()'}
+    {header: 'Identification',  value: "relation.getElementTypeName() + ': ' + relation.id", classes: 'col-md-5', show: "relation.show()", href: 'relation.href()'}
   ]
 
   localNameAndIdAndMetadata = -> [
-    {header: 'Name',            value: "ext.name || ext.Name || relation.classifiedName",                                 classes: 'col-md-3', show: "relation.show()"}
-    {header: 'Identification',  value: "relation.modelCatalogueId", classes: 'col-md-3', show: "relation.show()"}
+    {header: 'Name',            value: "ext.name || ext.Name || relation.classifiedName",                                 classes: 'col-md-3', show: "relation.show()", href: 'relation.href()'}
+    {header: 'Identification',  value: "relation.modelCatalogueId", classes: 'col-md-3', show: "relation.show()", href: 'relation.href()'}
     {header: 'Metadata',  value: printMetadata, classes: 'col-md-4'}
   ]
 
   nameAndIdent = -> [
-    {header: 'Name',            value: "relation.classifiedName ",                                     classes: 'col-md-5', show: "relation.show()"}
-    {header: 'Identification',  value: "relation.getElementTypeName() + ': ' + relation.id", classes: 'col-md-5', show: "relation.show()"}
+    {header: 'Name',            value: "relation.classifiedName ",                                     classes: 'col-md-5', show: "relation.show()", href: 'relation.href()'}
+    {header: 'Identification',  value: "relation.getElementTypeName() + ': ' + relation.id", classes: 'col-md-5', show: "relation.show()", href: 'relation.href()'}
   ]
 
   nameAndIdAndMetadata = -> [
-    {header: 'Name',            value: "relation.classifiedName",             classes: 'col-md-3', show: "relation.show()"}
-    {header: 'Identification',  value: "relation.modelCatalogueId", classes: 'col-md-3', show: "relation.show()"}
+    {header: 'Name',            value: "relation.classifiedName",             classes: 'col-md-3', show: "relation.show()", href: 'relation.href()'}
+    {header: 'Identification',  value: "relation.modelCatalogueId", classes: 'col-md-3', show: "relation.show()", href: 'relation.href()'}
     {header: 'Metadata',  value: printMetadata, classes: 'col-md-4'}
   ]
 
   publishedElement = ->  [
-    { header: "Model Catalogue ID", value: "modelCatalogueId", classes: "col-md-3", show: true }
-    { header: "Name", value: "name", classes: "col-md-3", show: true, sort: {property: 'name', type: 'alphabet'} }
+    { header: "Model Catalogue ID", value: "modelCatalogueId", classes: "col-md-3", show: true, href: 'href()' }
+    { header: "Name", value: "name", classes: "col-md-3", show: true, href: 'href()', sort: {property: 'name', type: 'alphabet'} }
     { header: "Description", value: "description" , classes: "col-md-4"}
     { header: "Value Domain", value: "valueDomain.name", classes: "col-md-3", show: true}
   ]
@@ -169,10 +169,13 @@ angular.module('mc.core.ui.bs.catalogueElementProperties', []).config ['catalogu
     hidden: true
   }
 
-#  catalogueElementPropertiesProvider.configureProperty 'org.modelcatalogue.core.DataElement.relationships',   {
-#    hidden: false
-#  }
+  catalogueElementPropertiesProvider.configureProperty 'org.modelcatalogue.core.DataElement.relationships',   {
+    hidden: false
+  }
 
+  catalogueElementPropertiesProvider.configureProperty 'org.modelcatalogue.core.Asset.synonyms',   {
+    hidden: true
+  }
 
 #  catalogueElementPropertiesProvider.configureProperty 'valueDomains',    hidden: (security) -> !security.hasRole('CURATOR')
   catalogueElementPropertiesProvider.configureProperty 'supersededBy',    hidden: true
