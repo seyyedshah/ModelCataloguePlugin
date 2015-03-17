@@ -1,9 +1,7 @@
 package org.modelcatalogue.core
 
-
 import org.modelcatalogue.core.dataarchitect.ExcelLoader
 import org.modelcatalogue.core.dataarchitect.HeadersMap
-
 import org.modelcatalogue.core.dataarchitect.xsd.XsdLoader
 import org.modelcatalogue.core.util.builder.CatalogueBuilder
 import org.modelcatalogue.core.xml.CatalogueXmlLoader
@@ -66,8 +64,7 @@ class DataImportController  {
         errors.addAll(getErrors(params, file))
 
         if (errors) {
-            response = ["errors": errors]
-            respond response
+            respond("errors": errors)
             return
         }
         conceptualDomainName = trimString(params.conceptualDomain)
@@ -96,7 +93,7 @@ class DataImportController  {
             def asset = storeAsset(params, file, 'application/xml')
             def id = asset.id
             InputStream inputStream = file.inputStream
-            HeadersMap headersMap = populateHeaders(request.JSON.headersMap ?: [:])
+            populateHeaders(request.JSON.headersMap ?: [:])
             executorService.submit {
                 try {
                     CatalogueXmlLoader loader = new CatalogueXmlLoader(new CatalogueBuilder(classificationService, elementService))
@@ -138,8 +135,9 @@ class DataImportController  {
             executorService.submit {
                 try {
                     Set<CatalogueElement> created = LoincImportService.serviceMethod(inputStream)
+                    Asset theAsset = Asset.get(id)
                     for (CatalogueElement element in created) {
-                        asset.addToRelatedTo(element)
+                        theAsset.addToRelatedTo(element)
                     }
                     Asset updated = finalizeAsset(id)
                     Classification classification = created.find { it instanceof Classification } as Classification
@@ -161,8 +159,9 @@ class DataImportController  {
             executorService.submit {
                 try {
                     Set<CatalogueElement> created = initCatalogueService.importMCFile(inputStream)
+                    Asset theAsset = Asset.get(id)
                     for (CatalogueElement element in created) {
-                        asset.addToRelatedTo(element)
+                        theAsset.addToRelatedTo(element)
                     }
                     Asset updated = finalizeAsset(id)
                     Classification classification = created.find { it instanceof Classification } as Classification
@@ -206,16 +205,8 @@ class DataImportController  {
                 }
             }
 
-            webRequest.currentResponse.with {
-                //TODO: remove the base link
-                def location = "http://" + request.getServerName() + ":" + request.getServerPort() + request.getContextPath() + "/api/modelCatalogue/core/asset/" + asset.id
-                status = 302
-                setHeader("Location", location.toString())
-                setHeader("X-Asset-ID", asset.id.toString())
-                outputStream.flush()
-            }
+            redirectToAsset(id)
             return
-
         }
 
 
@@ -227,8 +218,7 @@ class DataImportController  {
 
         if (!CONTENT_TYPES.contains(confType)) errors.add("input should be an Excel file but uploaded content is ${confType}")
         if (file.size <= 0) errors.add("The uploaded file is empty")
-        response = ["errors": errors]
-        respond response
+        respond "errors": errors
     }
 
     protected static makeRelationships(Collection<CatalogueElement> catElements, Asset asset){
@@ -253,13 +243,8 @@ class DataImportController  {
         updated
     }
     protected redirectToAsset(Long id){
-        webRequest.currentResponse.with {
-            def location = grailsApplication.config.grails.serverURL +  "/api/modelCatalogue/core/asset/" + id
-            status = 302
-            setHeader("Location", location.toString())
-            setHeader("X-Asset-ID",  id.toString())
-            outputStream.flush()
-        }
+        response.setHeader("X-Asset-ID",  id.toString())
+        redirect url: grailsApplication.config.grails.serverURL +  "/api/modelCatalogue/core/asset/" + id
     }
 
     protected logError(Long id,Exception e){
@@ -326,7 +311,12 @@ class DataImportController  {
         headersMap.dataElementCode = params.dataElementCode ?: "Data Item Unique Code"
         headersMap.dataElementName = params.dataElementName ?: "Data Item Name"
         headersMap.dataElementDescription = params.dataElementDescription ?: "Data Item Description"
-        headersMap.dataType = params.dataType ?: "Data type"
+        headersMap.dataTypeName = params.dataTypeName ?: "Data Type"
+        headersMap.dataTypeClassification = params.dataTypeClassification ?: "Data Type Classification"
+        headersMap.dataTypeCode = params.dataTypeCode ?: "Data Type Unique Code"
+        headersMap.valueDomainName = params.valueDomainName ?: "Value Domain"
+        headersMap.valueDomainClassification = params.valueDomainClassification ?: "Value Domain Classification"
+        headersMap.valueDomainCode = params.valueDomainCode ?: "Value Domain Unique Code"
         headersMap.parentModelName = params.parentModelName ?: "Parent Model"
         headersMap.parentModelCode = params.parentModelCode ?: "Parent Model Unique Code"
         headersMap.containingModelName = params.containingModelName ?: "Model"

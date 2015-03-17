@@ -154,24 +154,28 @@ import org.modelcatalogue.core.*
     }
 
     String getChanged() {
-        T existing = findExisting()
-        if (!existing) {
-            return changed = "Does Not Exist Yet"
-        }
+        try {
+            T existing = findExisting()
+            if (!existing) {
+                return changed = "Does Not Exist Yet"
+            }
 
-        if (isParametersChanged(existing)) {
-            return changed = "Parameters Changed"
-        }
+            if (isParametersChanged(existing)) {
+                return changed = "Parameters Changed"
+            }
 
-        if (isExtensionsChanged(existing)) {
-            return changed = "Extensions Changed"
-        }
+            if (isExtensionsChanged(existing)) {
+                return changed = "Extensions Changed"
+            }
 
-        if (isRelationshipsChanged()) {
-            return changed = "Relationship Changed"
-        }
+            if (isRelationshipsChanged()) {
+                return changed = "Relationship Changed"
+            }
 
-        return ""
+            return ""
+        } catch (e) {
+            throw new IllegalStateException("Error while determining whether $this changed!", e)
+        }
     }
 
     boolean isRelationshipsChanged() {
@@ -256,6 +260,9 @@ import org.modelcatalogue.core.*
             if (value instanceof CatalogueElementProxy) {
                 element.setProperty(key, value.resolve())
                 return
+            }
+            if (value instanceof String) {
+                element.setProperty(key, value.trim())
             }
             element.setProperty(key, value)
         }

@@ -1,5 +1,3 @@
-import org.modelcatalogue.core.*
-
 // locations to search for config files that get merged into the main config;
 // config files can be ConfigSlurper scripts, Java properties files, or classes
 // in the classpath in ConfigSlurper format
@@ -101,7 +99,7 @@ environments {
     }
     production {
         grails.logging.jul.usebridge = false
-        grails.serverURL = System.getenv('METADATA_SERVER_URL')
+        grails.serverURL = System.getenv('METADATA_SERVER_URL') ?:  "http://localhost:${System.getProperty('server.port') ?: 8080}/ModelCatalogueCorePluginTestApp"
     }
 }
 
@@ -126,6 +124,7 @@ log4j = {
 
     debug 'org.modelcatalogue.core.util.builder'
     debug 'org.modelcatalogue.core.publishing'
+    debug 'org.modelcatalogue.core.util.test'
 
 //    debug 'org.codehaus.groovy.grails.web.mapping'
 //    debug 'org.springframework.security'
@@ -137,8 +136,7 @@ log4j = {
 //        debug 'org.hibernate.SQL'
 //    }
 
-    warn 'org.modelcatalogue.core.xml'
-    warn 'org.modelcatalogue.core.reports.ReportDescriptor'
+    warn 'org.modelcatalogue.core'
 
     error 'org.codehaus.groovy.grails.web.servlet',           // controllers
             'org.codehaus.groovy.grails.web.pages',          // GSP

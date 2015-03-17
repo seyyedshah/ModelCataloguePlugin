@@ -77,7 +77,7 @@ grails.project.dependency.resolution = {
             exclude 'xml-apis'
         }
 
-        test "org.grails:grails-datastore-test-support:1.0-grails-2.4"
+        test "org.grails:grails-datastore-test-support:1.0.2-grails-2.4"
     }
 
     plugins {
@@ -98,6 +98,8 @@ grails.project.dependency.resolution = {
         runtime ":database-migration:1.4.0"
         runtime ":jquery:1.11.1"
         compile ":spring-security-ui:1.0-RC2"
+
+        compile ":grails-melody:1.55.0"
 
         test ":geb:0.9.3"
 
