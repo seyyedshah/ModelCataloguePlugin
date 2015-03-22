@@ -362,6 +362,12 @@ abstract class CatalogueElement implements Extendible, Published<CatalogueElemen
         for (User u in this.isFavouriteOf) {
             this.removeFromIsFavouriteOf(u)
         }
+
+        new HashSet(extensions).each{ ExtensionValue ex->
+            removeFromExtensions(ex)
+            ex.delete()
+        }
+
     }
 
 }
