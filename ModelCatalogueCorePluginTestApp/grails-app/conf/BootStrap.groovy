@@ -29,7 +29,7 @@ class BootStrap {
             TestDataHelper.initFreshDb(sessionFactory, 'initTestDatabase.sql') {
                 initCatalogueService.initCatalogue(true)
                 initSecurity()
-                setupStuff()
+//                setupStuff()
             }
         } else {
             initCatalogueService.initDefaultRelationshipTypes()
@@ -54,6 +54,10 @@ class BootStrap {
             UserRole.create admin, metadataCurator
             UserRole.create admin, roleAdmin, true
         }
+
+//        ValueDomain vd = ValueDomain.get(12575)
+//        vd.setStatus(ElementStatus.FINALIZED)
+//        vd.save()
 
         if (!curator.authorities.contains(metadataCurator)) {
             UserRole.create curator, roleUser

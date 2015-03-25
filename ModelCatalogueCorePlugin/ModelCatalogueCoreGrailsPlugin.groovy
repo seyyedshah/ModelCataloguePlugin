@@ -283,13 +283,6 @@ Model catalogue core plugin (metadata registry)
         }
 
         reportsRegistry.register {
-            creates asset
-            title { "Export All Elements of ${it.name} to Excel XSLX" }
-            type Model
-            link controller: 'dataArchitect', action: 'getSubModelElements', params: [format: 'xlsx', report:'NHIC'], id: true
-        }
-
-        reportsRegistry.register {
             creates link
             title { "Inventory Report" }
             type Classification

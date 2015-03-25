@@ -277,6 +277,8 @@ grails.assets.minifyOptions = [
         genOptions: [indent_start:0, indent_level:4, quote_keys: false, space_colon: false, beautify: false, ascii_only: false, inline_script:false]
 ]
 
+
+
 //grails.assets.bundle=false
 
 grails.assets.minifyJs = true
