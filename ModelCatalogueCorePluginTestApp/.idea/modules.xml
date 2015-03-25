@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/ModelCatalogueCorePluginTestApp.iml" filepath="$PROJECT_DIR$/ModelCatalogueCorePluginTestApp.iml" />
+      <module fileurl="file://$PROJECT_DIR$/ModelCatalogueCorePluginTestApp-grailsPlugins.iml" filepath="$PROJECT_DIR$/ModelCatalogueCorePluginTestApp-grailsPlugins.iml" />
+      <module fileurl="file://$PROJECT_DIR$/modelCatalogueCore-inplacePlugin.iml" filepath="$PROJECT_DIR$/modelCatalogueCore-inplacePlugin.iml" />
+      <module fileurl="file://$PROJECT_DIR$/modelCatalogueSecuritySs2-inplacePlugin.iml" filepath="$PROJECT_DIR$/modelCatalogueSecuritySs2-inplacePlugin.iml" />
+    </modules>
+  </component>
+</project>
+

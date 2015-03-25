@@ -27,54 +27,63 @@ class ModelServiceIntegrationSpec extends AbstractIntegrationSpec {
         de1 = DataElement.findByName("DE_author1")
         de2 = DataElement.findByName("AUTHOR")
         de3 = DataElement.findByName("auth")
-    }
-
-    def "get top level elements"() {
-        ListWithTotal topLevel = modelService.getTopLevelModels([:])
-
-        expect:
-        Model.count()           >= 5
-        topLevel.total          >= 2
-        topLevel.items.size()   == topLevel.total
-        topLevel.items.each {
-            assert !it.childOf
-        }
-
-    }
-
-    def "get subModels"() {
-        when:
-        ListWithTotal subModels = modelService.getSubModels(parent1)
-
-        then:
-        subModels.count == 3
-        subModels.list.contains(parent1)
-        subModels.list.contains(child1)
-        subModels.list.contains(grandChild)
-    }
-
-
-    def "get data elements from multiple models"() {
-        parent1.addToContains(de1)
-        child1.addToContains(de2)
+        grandChild.addToContains(de1)
+        grandChild.addToContains(de2)
         grandChild.addToContains(de3)
-
-        when:
-        ListWithTotal dataElements = modelService.getDataElementsFromModels([parent1, child1, grandChild])
-
-        then:
-        dataElements.count ==3
-        dataElements.list.contains(de1)
-        dataElements.list.contains(de2)
-        dataElements.list.contains(de3)
     }
 
-    def "test infinite recursion"(){
-        when:
-        ListWithTotal subModels = modelService.getSubModels(parent1)
-
-        then:
-        subModels.count ==3
+    def schema(){
+        modelService.printModels(parent1)
+        expect:
+        println("test")
     }
+
+//    def "get top level elements"() {
+//        ListWithTotal topLevel = modelService.getTopLevelModels([:])
+//
+//        expect:
+//        Model.count()           >= 5
+//        topLevel.total          >= 2
+//        topLevel.items.size()   == topLevel.total
+//        topLevel.items.each {
+//            assert !it.childOf
+//        }
+//
+//    }
+//
+//    def "get subModels"() {
+//        when:
+//        ListWithTotal subModels = modelService.getSubModels(parent1)
+//
+//        then:
+//        subModels.count == 3
+//        subModels.list.contains(parent1)
+//        subModels.list.contains(child1)
+//        subModels.list.contains(grandChild)
+//    }
+//
+//
+//    def "get data elements from multiple models"() {
+//        parent1.addToContains(de1)
+//        child1.addToContains(de2)
+//        grandChild.addToContains(de3)
+//
+//        when:
+//        ListWithTotal dataElements = modelService.getDataElementsFromModels([parent1, child1, grandChild])
+//
+//        then:
+//        dataElements.count ==3
+//        dataElements.list.contains(de1)
+//        dataElements.list.contains(de2)
+//        dataElements.list.contains(de3)
+//    }
+//
+//    def "test infinite recursion"(){
+//        when:
+//        ListWithTotal subModels = modelService.getSubModels(parent1)
+//
+//        then:
+//        subModels.count ==3
+//    }
 
 }
