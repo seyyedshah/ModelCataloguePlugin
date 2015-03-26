@@ -32,8 +32,15 @@ class ModelServiceIntegrationSpec extends AbstractIntegrationSpec {
         grandChild.addToContains(de3)
     }
 
-    def schema(){
-        modelService.printModels(parent1)
+//    def schema(){
+//        modelService.printModels(parent1)
+//        expect:
+//        println("test")
+//    }
+
+
+    def xml(){
+        modelService.gelMasterXML(parent1)
         expect:
         println("test")
     }

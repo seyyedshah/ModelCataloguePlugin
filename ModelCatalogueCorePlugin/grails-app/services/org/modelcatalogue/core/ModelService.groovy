@@ -207,6 +207,183 @@ class ModelService {
     }
 
 
+
+    def gelMasterXML(Model model){
+        def writer = new StringWriter()
+        def builder = new MarkupBuilder(writer)
+        builder.context('xmlns:xsi':"http://www.w3.org/2001/XMLSchema-instance", 'xsi:noNamespaceSchemaLocation':"../../../Transformations/form.xsd"){
+            setOmitEmptyAttributes(true)
+            setOmitNullAttributes(true)
+            dataset('fileLocation':"../GEL_RD_Master.xml", 'name':"Master")
+            form(id:"${printXSDFriendlyString(model.name)}") {
+                name model.name
+                instructions model.ext.instructions
+                version {
+                    major model.versionNumber
+                    minor 0
+                    patch 0
+                }
+                versionDescription 'Alpha version'
+                revisionNotes 'Alpha version'
+                formTitle printXSDFriendlyString(model.name)
+                formInitials printXSDFriendlyString(model.name)
+                model.outgoingRelationships.each { Relationship rel ->
+                    if (rel.relationshipType == RelationshipType.containmentType) this.printQuestion(rel.destination, rel.ext, builder)
+                    if (rel.relationshipType == RelationshipType.hierarchyType) this.printSection(rel.destination, rel.ext, builder)
+                }
+            }
+        }
+        println(writer.toString())
+    }
+
+    def gelDiseaseModelPhenotypes(){
+        Long id = params.long('modelId') ?: params.long('id')
+        Model model = Model.get(id)
+        def builder = new MarkupBuilder()
+        builder."rare-diseases" ('xmlns:xsi':"http://www.w3.org/2001/XMLSchema-instance", 'xsi:noNamespaceSchemaLocation':"../Schemas/DiseaseOntology.xsd"){
+            setOmitEmptyAttributes(true)
+            setOmitNullAttributes(true)
+            model.outgoingRelationships.each{ Relationship rel ->
+                if(rel.relationshipType==RelationshipType.hierarchyType) this.printDiseaseGroup(rel.destination, builder)
+            }
+        }
+
+        return "test"
+    }
+
+    def printDiseaseGroup(Model model, MarkupBuilder builder){
+        return builder."disease-group"(name: model.name, id: model.ext.get("OBO ID")) {
+            setOmitEmptyAttributes(true)
+            setOmitNullAttributes(true)
+            model.outgoingRelationships.each { Relationship rel ->
+                if (rel.relationshipType == RelationshipType.hierarchyType) this.printSubGroup(rel.destination, builder)
+            }
+        }
+    }
+
+    def printSubGroup(Model model, MarkupBuilder builder){
+        return builder."sub-group"(name: model.name, id: model.ext.get("OBO ID")) {
+            setOmitEmptyAttributes(true)
+            setOmitNullAttributes(true)
+            model.outgoingRelationships.each { Relationship rel ->
+                if (rel.relationshipType == RelationshipType.hierarchyType && rel.ext.get("phenotypes") != "shallow-phenotypes") {
+                    this.printSpecificDisorder(rel.destination, builder)
+                } else {
+                    "shallow-phenotypes" {
+                        rel.destination.parentOf.each { md ->
+                            this.printPhenotypes(md, builder)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    def printSpecificDisorder(Model model, MarkupBuilder builder){
+
+        return builder."specific-disorder"(name: model.name, id: model.ext.get("OBO ID")) {
+            setOmitEmptyAttributes(true)
+            setOmitNullAttributes(true)
+            "shallow-phenotypes" {
+                model.outgoingRelationships.each { Relationship rel ->
+                    rel.destination.parentOf.each { md ->
+                        this.printPhenotypes(md, builder)
+                    }
+                }
+            }
+        }
+    }
+
+    def printPhenotypes(Model model, MarkupBuilder builder){
+        return builder."hpo-phenotype"(name: model.name, id: model.ext.get("OBO ID"), "hpo-build":"")
+    }
+
+    def printSection(Model model, Map ext, MarkupBuilder builder){
+        if(model.ext.repeating=='true') {
+
+            return builder.repeatingGroup(id: printXSDFriendlyString(model.name), minOccurs: ext.get("Min Occurs"), maxOccurs: ext.get("Max Occurs")) {
+                setOmitEmptyAttributes(true)
+                setOmitNullAttributes(true)
+                name model.name
+
+                model.outgoingRelationships.each { Relationship rel ->
+                    if (rel.relationshipType == RelationshipType.containmentType) this.printQuestion(rel.destination, rel.ext, builder)
+                    if (rel.relationshipType == RelationshipType.hierarchyType) this.printSection(rel.destination, rel.ext, builder)
+                }
+            }
+
+        }else{
+
+            return builder.section(id: model.name, minRepeat: ext.get("Min Occurs"), maxRepeat: ext.get("Max Occurs")) {
+                setOmitEmptyAttributes(true)
+                setOmitNullAttributes(true)
+                name model.name
+                instructions model.ext.instructions
+
+                model.outgoingRelationships.each { Relationship rel ->
+                    if (
+                    rel.relationshipType == RelationshipType.containmentType) this.printQuestion(rel.destination, rel.ext, builder)
+                    if (rel.relationshipType == RelationshipType.hierarchyType) this.printSection(rel.destination, rel.ext, builder)
+                }
+            }
+
+        }
+    }
+
+    def printQuestion(DataElement dataElement, Map ext, MarkupBuilder builder){
+        return builder.question(id: "R_${dataElement.id}", minRepeat: ext.get("Min Occurs"), maxRepeat: ext.get("Max Occurs")){
+            setOmitEmptyAttributes(true)
+            setOmitNullAttributes(true)
+            name dataElement.name
+            text  dataElement.ext.text
+            instructions dataElement.description
+
+            if(dataElement.ext.serviceLookupName){
+                'service-lookup'(id: dataElement.ext.serviceLookupId, style: dataElement.ext.serviceLookupStyle){
+                    name dataElement.ext.serviceLookupName
+                }
+            }
+
+            if(dataElement?.valueDomain?.dataType instanceof EnumeratedType) {
+                enumeration(id:printXSDFriendlyString(dataElement.valueDomain.name), style:dataElement.valueDomain.ext.style){
+                    dataElement.valueDomain.dataType.enumerations.each{ key, val ->
+                        value (control: key, val)
+                    }
+                }
+            }else{
+                if(dataElement?.valueDomain?.dataType) {
+                    simpleType transformDataType(dataElement?.valueDomain.dataType.name)
+                }else{
+                    simpleType 'string'
+                }
+            }
+
+        }
+    }
+
+
+    protected  transformDataType(String dataType){
+        def dataType2 = dataType.replace('xs:', '')
+
+        if(dataType2=="nonNegativeInteger"){
+            dataType2 = "integer"
+        }else if(dataType2=="double"){
+            dataType2 = "decimal"
+        }else if(dataType2=="dateTime"){
+            dataType2 = "datetime"
+        }
+
+        return printXSDFriendlyString(dataType2)
+
+    }
+
+
+
+
+
+
+
+
 //    <xs:element name="participant-id" minOccurs="1" maxOccurs="1">
 //    <xs:annotation>
 //    <xs:appinfo>

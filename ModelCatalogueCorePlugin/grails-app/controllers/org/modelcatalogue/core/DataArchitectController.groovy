@@ -119,5 +119,11 @@ class DataArchitectController extends AbstractRestfulController<CatalogueElement
         }
     }
 
+    def gelMasterXML(){
+        Long id = params.long('modelId') ?: params.long('id')
+        Model model = Model.get(id)
+        modelService.gelMasterXML(model)
+    }
+
 
 }
