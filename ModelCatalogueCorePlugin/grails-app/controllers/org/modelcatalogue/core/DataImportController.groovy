@@ -75,12 +75,11 @@ class DataImportController  {
             def id = asset.id
             InputStream inputStream = file.inputStream
             HeadersMap headersMap = populateHeaders(request.JSON.headersMap ?: [:])
-            executorService.submit {
+            executeInBackground(id, "Imported from Excel") {
                 try {
                     ExcelLoader parser = new ExcelLoader(inputStream)
                     def (headers, rows) = parser.parse()
-                    Collection<CatalogueElement> catElements =  dataImportService.importData(headers, rows, headersMap)
-                    makeRelationships(catElements, finalizeAsset(id))
+                    dataImportService.importData(headers, rows, headersMap)
                 } catch (Exception e) {
                     logError(id, e)
                 }
@@ -94,11 +93,10 @@ class DataImportController  {
             def id = asset.id
             InputStream inputStream = file.inputStream
             populateHeaders(request.JSON.headersMap ?: [:])
-            executorService.submit {
+            executeInBackground(id, "Imported from XML") {
                 try {
                     CatalogueXmlLoader loader = new CatalogueXmlLoader(new CatalogueBuilder(classificationService, elementService))
-                    Collection<CatalogueElement> catElements = loader.load(inputStream)
-                    makeRelationships(catElements, finalizeAsset(id))
+                    loader.load(inputStream)
                 } catch (Exception e) {
                     logError(id, e)
                 }
@@ -113,7 +111,7 @@ class DataImportController  {
             InputStream inputStream = file.inputStream
             String name = params?.name
             String idpattern = params.idpattern
-            executorService.submit {
+            executeInBackground(id, "Imported from OBO") {
                 try {
                     Classification classification = OBOService.importOntology(inputStream, name, idpattern)
                     Asset updated = finalizeAsset(id)
@@ -132,13 +130,9 @@ class DataImportController  {
             def id = asset.id
             InputStream inputStream = file.inputStream
 
-            executorService.submit {
+            executeInBackground(id, "Imported from LOINC")  {
                 try {
                     Set<CatalogueElement> created = loincImportService.serviceMethod(inputStream)
-                    Asset theAsset = Asset.get(id)
-                    for (CatalogueElement element in created) {
-                        theAsset.addToRelatedTo(element, skipUniqueChecking: true)
-                    }
                     Asset updated = finalizeAsset(id)
                     Classification classification = created.find { it instanceof Classification } as Classification
                     classifyAsset(updated, classification)
@@ -156,13 +150,9 @@ class DataImportController  {
             def id = asset.id
             InputStream inputStream = file.inputStream
 
-            executorService.submit {
+            executeInBackground(id, "Imported from Model Catalogue DSL")  {
                 try {
                     Set<CatalogueElement> created = initCatalogueService.importMCFile(inputStream)
-                    Asset theAsset = Asset.get(id)
-                    for (CatalogueElement element in created) {
-                        theAsset.addToRelatedTo(element, skipUniqueChecking: true)
-                    }
                     Asset updated = finalizeAsset(id)
                     Classification classification = created.find { it instanceof Classification } as Classification
                     classifyAsset(updated, classification)
@@ -181,7 +171,7 @@ class DataImportController  {
             InputStream inputStream = file.inputStream
             String name = params?.name
 
-            executorService.submit {
+            executeInBackground(id, "Imported from Style UML")  {
                 try {
                     Classification classification = Classification.findByName(name)
                     if(!classification) classification =  new Classification(name: name).save(flush:true, failOnError:true)
@@ -192,9 +182,6 @@ class DataImportController  {
                     updated.save(flush: true, failOnError: true)
                     updated.addToClassifications(classification, skipUniqueChecking: true)
                     classification.addToClassifies(updated, skipUniqueChecking: true)
-                    if (classification) {
-                        updated.addToRelatedTo(classification, skipUniqueChecking: true)
-                    }
                 } catch (Exception e) {
                     Asset updated = Asset.get(id)
                     updated.refresh()
@@ -221,16 +208,9 @@ class DataImportController  {
         respond "errors": errors
     }
 
-    protected static makeRelationships(Collection<CatalogueElement> catElements, Asset asset){
-        catElements.each{
-            asset.addToRelatedTo(it, skipUniqueChecking: true)
-        }
-    }
-
     protected static classifyAsset(Asset asset, Classification classification){
         if (classification) {
             asset.addToClassifications(classification, skipUniqueChecking: true)
-            asset.addToRelatedTo(classification, skipUniqueChecking: true)
         }
     }
 
@@ -280,18 +260,16 @@ class DataImportController  {
         Long id = asset.id
         Boolean createModelsForElements = params.boolean('createModelsForElements')
 
-        executorService.submit {
+        executeInBackground(id, "Rendered Import as Asset") {
             Asset updated = Asset.get(id)
             try {
                 XsdLoader parserXSD = new XsdLoader(inputStream)
                 def (topLevelElements, simpleDataTypes, complexDataTypes, schema, namespaces) = parserXSD.parse()
-                def (classification, conceptualDomain) = XSDImportService.createAll(simpleDataTypes, complexDataTypes, topLevelElements, conceptualDomainName, conceptualDomainName, schema, namespaces, createModelsForElements)
+                XSDImportService.createAll(simpleDataTypes, complexDataTypes, topLevelElements, conceptualDomainName, conceptualDomainName, schema, namespaces, createModelsForElements)
                 updated.status = ElementStatus.FINALIZED
                 updated.description = "Your export is ready. Use Download button to view it."
                 updated.ext['Original URL'] = uri
                 updated.save(flush: true, failOnError: true)
-                updated.addToRelatedTo(classification, skipUniqueChecking: true)
-                updated.addToRelatedTo(conceptualDomain, skipUniqueChecking: true)
             } catch (e) {
                 log.error("Error importing schema", e)
                 updated.refresh()
@@ -325,5 +303,9 @@ class DataImportController  {
         headersMap.classification = params.classification ?: "Classification"
         headersMap.metadata = params.metadata ?: "Metadata"
         return headersMap
+    }
+
+    protected executeInBackground(Long assetId, String message, Closure code) {
+        executorService.submit(code)
     }
 }

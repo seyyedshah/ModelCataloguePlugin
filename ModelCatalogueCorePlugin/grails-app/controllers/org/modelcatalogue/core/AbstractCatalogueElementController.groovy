@@ -2,7 +2,6 @@ package org.modelcatalogue.core
 
 import grails.transaction.Transactional
 import org.modelcatalogue.core.publishing.DraftContext
-import org.modelcatalogue.core.security.User
 import org.modelcatalogue.core.util.*
 import org.modelcatalogue.core.util.builder.RelationshipDefinition
 import org.modelcatalogue.core.util.builder.RelationshipDefinitionBuilder
@@ -158,7 +157,10 @@ abstract class AbstractCatalogueElementController<T extends CatalogueElement> ex
                 notFound()
                 return
             }
-            Relationship old = outgoing ?  relationshipService.unlink(source, destination, relationshipType) :  relationshipService.unlink(destination, source, relationshipType)
+
+            Classification classification = otherSide.classification ? Classification.get(otherSide.classification.id) : null
+
+            Relationship old = outgoing ?  relationshipService.unlink(source, destination, relationshipType, classification) :  relationshipService.unlink(destination, source, relationshipType, classification)
             if (!old) {
                 notFound()
                 return
@@ -235,7 +237,7 @@ abstract class AbstractCatalogueElementController<T extends CatalogueElement> ex
 
             RelationshipDefinitionBuilder definition = outgoing ? RelationshipDefinition.create(source, destination, relationshipType) : RelationshipDefinition.create(destination, source, relationshipType)
 
-            definition.withClassification(classification).withMetadata(objectToBind.metadata ?: [:])
+            definition.withClassification(classification).withMetadata(OrderedMap.fromJsonMap(objectToBind.metadata ?: [:]))
 
             Relationship rel = relationshipService.link(definition.definition)
 
@@ -391,7 +393,6 @@ abstract class AbstractCatalogueElementController<T extends CatalogueElement> ex
     protected getDefaultSort()  { actionName == 'index' ? 'name'  : null }
     protected getDefaultOrder() { actionName == 'index' ? 'asc'   : null }
 
-    def relationshipTypeService
     def classificationService
 
     @Override
@@ -425,6 +426,13 @@ abstract class AbstractCatalogueElementController<T extends CatalogueElement> ex
         }
 
         def newVersion = params.boolean('newVersion',false)
+
+        if (instance.status.ordinal() >= ElementStatus.FINALIZED.ordinal() && !newVersion) {
+            instance.errors.rejectValue 'status', 'cannot.modify.finalized.or.deprecated', 'Cannot modify element in finalized or deprecated state!'
+            respond instance.errors, view: 'edit' // STATUS CODE 422
+            return
+        }
+
         def ext = params?.ext
         def oldProps = new HashMap(instance.properties)
         oldProps.remove('modelCatalogueId')
@@ -461,7 +469,7 @@ abstract class AbstractCatalogueElementController<T extends CatalogueElement> ex
         bindData(instance, getObjectToBind(), [include: includeParams])
         instance.save flush:true
 
-        if (ext) {
+        if (ext != null) {
             instance.setExt(ext.collectEntries { key, value -> [key, value?.toString() == "null" ? null : value]})
         }
 
