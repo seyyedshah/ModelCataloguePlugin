@@ -8,6 +8,8 @@ import org.modelcatalogue.core.util.ListWrapper
 import org.modelcatalogue.core.util.builder.CatalogueBuilder
 import org.modelcatalogue.core.util.marshalling.*
 import org.modelcatalogue.core.util.marshalling.xlsx.XLSXListRenderer
+import org.modelcatalogue.core.util.js.FrontendConfigurationProviderRegistry
+import org.modelcatalogue.core.util.js.ApiRootFrontendConfigurationProvider
 
 class ModelCatalogueCoreGrailsPlugin {
     // the plugin version
@@ -58,6 +60,10 @@ Model catalogue core plugin (metadata registry)
 
         xlsxListRenderer(XLSXListRenderer)
         reportsRegistry(ReportsRegistry)
+        jsonMarshallingCustomizerRegistry(JsonMarshallingCustomizerRegistry)
+        frontendConfigurationProviderRegistry(FrontendConfigurationProviderRegistry)
+
+        apiRootFrontendConfigurationProvider(ApiRootFrontendConfigurationProvider)
 
         modelCatalogueCorePluginCustomObjectMarshallers(ModelCatalogueCorePluginCustomObjectMarshallers) {
             marshallers = [
@@ -67,13 +73,13 @@ Model catalogue core plugin (metadata registry)
                     new DataTypeMarshaller(),
                     new ElementsMarshaller(),
                     new EnumeratedTypeMarshaller(),
-                    new MeasurementUnitMarshallers(),
+                    new MeasurementUnitMarshaller(),
                     new ModelMarshaller(),
                     new RelationshipTypeMarshaller(),
                     new RelationshipMarshallers(),
                     new RelationshipsMarshaller(),
                     new ValueDomainMarshaller(),
-                    new MappingMarshallers(),
+                    new MappingMarshaller(),
                     new MappingsMarshaller(),
                     new ListWithTotalAndTypeWrapperMarshaller(),
                     new BatchMarshaller(),
