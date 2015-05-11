@@ -24,8 +24,14 @@ class RelationshipType {
     //the both sides of the relationship ie. for parentChild this would be parent (for synonym this is synonym, so the same on both sides)
     String sourceToDestination
 
+    // detailed explanation of the source to destination relationship
+    String sourceToDestinationDescription
+
     //the both sides of the relationship i.e. for parentChild this would be child (for synonym this is synonym, so the same on both sides)
     String destinationToSource
+
+    // detailed explanation of the reversed relationship
+    String destinationToSourceDescription
 
     //you can constrain the relationship type
     Class sourceClass
@@ -70,6 +76,8 @@ class RelationshipType {
         destinationClass validator: classValidator
         metadataHints nullable: true, maxSize: 10000
         rule nullable: true, maxSize: 10000
+        sourceToDestinationDescription nullable: true, maxSize: 2000
+        destinationToSourceDescription nullable: true, maxSize: 2000
     }
 
     static transients = ['ruleScript']
@@ -78,6 +86,8 @@ class RelationshipType {
     static mapping = {
         cache 'nonstrict-read-write'
         sort "name"
+		name index: 'RelationType_name_idx'
+		destinationClass index: 'RelationType_destinationClass_idx'
     }
 
     void setRule(String rule) {

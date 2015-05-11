@@ -73,7 +73,7 @@ angular.module('mc.core.ui.bs.modelWizard', ['mc.util.messages', 'mc.util.ui.foc
               <form ng-submit="select('parents')">
                 <div>
                   <h4>Metadata</h4>
-                  <simple-object-editor title="Key" value-title="Value" object="metadata"></simple-object-editor>
+                  <ordered-map-editor title="Key" value-title="Value" object="metadata"></ordered-map-editor>
                 </div>
               </form>
           </div>
@@ -91,7 +91,7 @@ angular.module('mc.core.ui.bs.modelWizard', ['mc.util.messages', 'mc.util.ui.foc
                   </div>
                   <p class="help-block">Parent model is source for the hierarchy relationship</p>
                 </div>
-                <simple-object-editor object="parent.ext" title="Relationship Metadata" hints="['Min Occurs', 'Max Occurs']"></simple-object-editor>
+                <ordered-map-editor object="parent.ext" title="Relationship Metadata" hints="['Min Occurs', 'Max Occurs']"></ordered-map-editor>
               </form>
           </div>
           <div ng-switch-when="children" id="children">
@@ -113,7 +113,7 @@ angular.module('mc.core.ui.bs.modelWizard', ['mc.util.messages', 'mc.util.ui.foc
                     <strong>Hint:</strong> If you have CSV file with sample data you can <a class="alert-link"><span class="fa fa-magic"></span> import child models from CSV file headers</a>.
                   </alert>
                 </div>
-                <simple-object-editor object="child.ext" title="Relationship Metadata" hints="['Min Occurs', 'Max Occurs']"></simple-object-editor>
+                <ordered-map-editor object="child.ext" title="Relationship Metadata" hints="['Min Occurs', 'Max Occurs']"></ordered-map-editor>
               </form>
           </div>
           <div ng-switch-when="elements" id="elements">
@@ -135,7 +135,7 @@ angular.module('mc.core.ui.bs.modelWizard', ['mc.util.messages', 'mc.util.ui.foc
                     <strong>Hint:</strong> If you have CSV file with sample data you can <a class="alert-link"><span class="fa fa-magic"></span> import data elements from CSV file headers</a>.
                   </alert>
                 </div>
-                <simple-object-editor object="dataElement.ext" title="Relationship Metadata" hints="['Min Occurs', 'Max Occurs']"></simple-object-editor>
+                <ordered-map-editor object="dataElement.ext" title="Relationship Metadata" hints="['Min Occurs', 'Max Occurs']"></ordered-map-editor>
               </form>
             </tab>
           </div>
@@ -166,18 +166,20 @@ angular.module('mc.core.ui.bs.modelWizard', ['mc.util.messages', 'mc.util.ui.foc
           <button ng-disabled="!finished" class="btn btn-default"  ng-click="$close(model)" id="exit-wizard"><span class="glyphicon glyphicon-remove"></span> Close</button>
         </div>
         '''
-        controller: ['$scope', '$state', '$window', 'messages', 'names', 'catalogueElementResource', '$modalInstance', '$timeout', 'args', 'delayedQueueExecutor', '$q', '$log', ($scope, $state, $window, messages, names, catalogueElementResource, $modalInstance, $timeout, args, delayedQueueExecutor, $q, $log) ->
+        controller: ['$scope', '$state', '$window', 'messages', 'names', 'catalogueElementResource', '$modalInstance', '$timeout', 'args', 'delayedQueueExecutor', '$q', '$log', 'enhance', ($scope, $state, $window, messages, names, catalogueElementResource, $modalInstance, $timeout, args, delayedQueueExecutor, $q, $log, enhance) ->
           execAfter50 = delayedQueueExecutor(500)
+
+          orderedMapEnhancer = enhance.getEnhancer('orderedMap')
 
           $scope.reset = ->
             $scope.args = args
             $scope.model = {classifications: []}
-            $scope.metadata = {}
-            $scope.parent = {ext: {}}
+            $scope.metadata = orderedMapEnhancer.emptyOrderedMap()
+            $scope.parent = {ext: orderedMapEnhancer.emptyOrderedMap()}
             $scope.parents = []
-            $scope.child = {ext: {}}
+            $scope.child = {ext: orderedMapEnhancer.emptyOrderedMap()}
             $scope.children = []
-            $scope.dataElement = args.dataElement ? {ext: {}}
+            $scope.dataElement = args.dataElement ? {ext: orderedMapEnhancer.emptyOrderedMap()}
             $scope.dataElements = []
             $scope.classification = {}
             $scope.classifications = []
@@ -194,7 +196,7 @@ angular.module('mc.core.ui.bs.modelWizard', ['mc.util.messages', 'mc.util.ui.foc
             $scope.classificationsVisited = false
 
             if args.parent
-              $scope.parents.push {element: args.parent, name: args.parent.name, metadata: {}}
+              $scope.parents.push {element: args.parent, name: args.parent.name, metadata: orderedMapEnhancer.emptyOrderedMap()}
 
           $scope.reset()
 
@@ -217,12 +219,11 @@ angular.module('mc.core.ui.bs.modelWizard', ['mc.util.messages', 'mc.util.ui.foc
             else
               value.name = value.element.name
             $scope[arrayName].push value
-            $scope[propertyName] = {ext: {}}
+            $scope[propertyName] = {ext: orderedMapEnhancer.emptyOrderedMap()}
 
           $scope.openElementInNewWindow = (element) ->
             url = $state.href('mc.resource.show', {resource: names.getPropertyNameFromType(element.elementType), id: element.id})
             $window.open(url,'_blank')
-            return
 
           $scope.finish = () ->
             return if $scope.finishInProgress
@@ -318,7 +319,6 @@ angular.module('mc.core.ui.bs.modelWizard', ['mc.util.messages', 'mc.util.ui.foc
             $scope.classificationsVisited |= step == 'classifications'
             return if step != 'model' and not $scope.model.name
             $scope.step = step
-            return
 
           $scope.next = ->
             return if not $scope.model.name
@@ -392,7 +392,7 @@ angular.module('mc.core.ui.bs.modelWizard', ['mc.util.messages', 'mc.util.ui.foc
                   angular.forEach result.list, (relation) ->
                     $scope[property] = element: relation.relation, ext: relation.ext
                     $scope.push container, property
-                  $scope[property] = {ext: {}}
+                  $scope[property] = {ext: orderedMapEnhancer.emptyOrderedMap()}
 
               promises.push model.parentOf(null, max: 100).then push('children', 'child')
               promises.push model.contains(null, max: 100).then push('dataElements', 'dataElement')
@@ -400,9 +400,7 @@ angular.module('mc.core.ui.bs.modelWizard', ['mc.util.messages', 'mc.util.ui.foc
               $q.all promises
 
           $scope.hasMetadata = ->
-            for ignored of $scope.metadata
-              return true
-            return false
+            return $scope.metadata.values.length > 0 and $scope.metadata.values[0].key
 
 
           $scope.isModelCatalogueIdValid = ->

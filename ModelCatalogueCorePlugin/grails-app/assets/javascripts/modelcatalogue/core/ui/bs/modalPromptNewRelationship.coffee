@@ -1,5 +1,5 @@
 angular.module('mc.core.ui.bs.modalPromptNewRelationship', ['mc.util.messages']).config ['messagesProvider', (messagesProvider)->
-  messagesProvider.setPromptFactory 'create-new-relationship', [ '$modal', '$q', 'messages', 'catalogueElementResource', ($modal, $q, messages, catalogueElementResource) ->
+  messagesProvider.setPromptFactory 'create-new-relationship', [ '$modal', '$q', 'messages', 'catalogueElementResource', 'enhance', ($modal, $q, messages, catalogueElementResource, enhance) ->
     (title, body, args) ->
       if not args?.element?
         messages.error('Cannot create relationship dialog.', 'The element to be connected to is missing.')
@@ -17,6 +17,7 @@ angular.module('mc.core.ui.bs.modalPromptNewRelationship', ['mc.util.messages'])
                 <select id="type" ng-model="relationshipTypeInfo" class="form-control" ng-options="rt as rt.value for rt in relationshipTypes" ng-change="updateInfo(relationshipTypeInfo)">
                   <option value="">-- choose relation --</option>
                 </select>
+                <p class="help-block" ng-if="relationshipTypeInfo.description">{{relationshipTypeInfo.description}}</p>
               </div>
               <div class="panel panel-default" ng-repeat="destination in destinations">
                 <div class="panel-heading">
@@ -30,7 +31,7 @@ angular.module('mc.core.ui.bs.modalPromptNewRelationship', ['mc.util.messages'])
                   </div>
                   <div class="form-group">
                     <label>Metadata</label>
-                    <simple-object-editor object="destination.metadata" hints="relationshipTypeInfo.type.metadataHints"></simple-object-editor>
+                    <ordered-map-editor object="destination.metadata" hints="relationshipTypeInfo.type.metadataHints"></ordered-map-editor>
                     <p class="help-block">Metadata specific to this relationship. For example <code>contains</code> and <code>parent of</code> relationship types supports <code>Name</code> metadata as an alias of nested model or data element.</p>
                   </div>
                   <div class="form-group">
@@ -69,7 +70,7 @@ angular.module('mc.core.ui.bs.modalPromptNewRelationship', ['mc.util.messages'])
               $scope.direction = null
 
           $scope.addDestination = ->
-            destination = messages: messages.createNewMessages(), metadata: {}
+            destination = messages: messages.createNewMessages(), metadata: enhance.getEnhancer('orderedMap').emptyOrderedMap()
             destination.updateRelation = (relation) -> @relation = relation
             destination.updateClassification = (classification) -> @classification = classification
 
@@ -117,8 +118,8 @@ angular.module('mc.core.ui.bs.modalPromptNewRelationship', ['mc.util.messages'])
 
           appendToRelationshipTypes = (result) ->
             for type in result.list
-              outgoing = if args.element.isInstanceOf(type.sourceClass) then {type: type, value: type.sourceToDestination, relation: 'destination',  direction: 'outgoing'}
-              incoming = if args.element.isInstanceOf(type.destinationClass) and type.sourceToDestination != type.destinationToSource then {type: type, value: type.destinationToSource, relation: 'source',       direction: 'incoming'}
+              outgoing = if args.element.isInstanceOf(type.sourceClass) then {type: type, value: type.sourceToDestination, relation: 'destination',  direction: 'outgoing', description: type.sourceToDestinationDescription}
+              incoming = if args.element.isInstanceOf(type.destinationClass) and type.sourceToDestination != type.destinationToSource then {type: type, value: type.destinationToSource, relation: 'source', direction: 'incoming', description: type.destinationToSourceDescription}
               $scope.relationshipTypes.push outgoing if outgoing
               $scope.relationshipTypes.push incoming if incoming
 

@@ -1,65 +1,3 @@
-#= require_self
-#= require modelcatalogue/core/index
-#= require modelcatalogue/util/ui/index
-#= require modelcatalogue/util/ui/bs/index
-#= require catalogueElementView
-#= require csvTransformationView
-#= require importCtrl
-#= require modalPromptNewExcelImport
-#= require modalPromptNewLoincImport
-#= require modalPromptNewOboImport
-#= require modalPromptNewUmljImport
-#= require modalPromptNewXsdImport
-#= require modalPromptNewMCImport
-#= require modalPromptNewCatalogueXmlImport
-#= require batchView
-#= require catalogueElementTreeview
-#= require catalogueElementTreeviewItem
-#= require catalogueElementProperties
-#= require infiniteTable
-#= require infiniteList
-#= require propertiesPane
-#= require actions
-#= require navigationActions
-#= require columns
-#= require catalogue
-#= require columnsConfiguration
-#= require messagesPanel
-#= require modalConfirm
-#= require modalPrompt
-#= require modalPromptEditRelationship
-#= require modalPromptNewRelationship
-#= require modalPromptNewMapping
-#= require modalPromptXmlValidate
-#= require simpleObjectEditor
-#= require modalPromptAssetEdit
-#= require modalPromptBasicEdit
-#= require modalPromptCsvHeaders
-#= require modalPromptCsvTransform
-#= require modalPromptLogin
-#= require modalPromptForCatalogueElement
-#= require modalSearchForCatalogueElement
-#= require modalSearchForActions
-#= require modalPromptForCatalogueElements
-#= require modalPromptMeasurementUnitEdit
-#= require modalPromptActionParametersEdit
-#= require modalPromptValueDomainEdit
-#= require modalPromptEnumeratedTypeEdit
-#= require modalPromptModel
-#= require modalPromptRelationshipTypeEdit
-#= require modalPromptDataElementEdit
-#= require saveOrUpdatePublishedElementCtrl
-#= require saveAndCreateAnotherCtrlMixin
-#= require modalPromptConvert
-#= require modalPromptValidateValue
-#= require modelWizard
-#= require classificationWizard
-#= require elementsAsTags
-#= require diffTable
-#= require withClassificationCtrlMixin
-#= require modalPromptClassificationFilter
-
-
 angular.module('mc.core.ui.bs', [
   # depends on
   'mc.core.ui'
@@ -88,6 +26,8 @@ angular.module('mc.core.ui.bs', [
   'mc.core.ui.bs.catalogueElementProperties'
   'mc.core.ui.bs.propertiesPane'
   'mc.core.ui.bs.actions'
+  'mc.core.ui.bs.catalogueElementActions'
+  'mc.core.ui.bs.statesActions'
   'mc.core.ui.bs.navigationActions'
   'mc.core.ui.bs.columns'
   'mc.core.ui.bs.catalogue'
@@ -125,6 +65,7 @@ angular.module('mc.core.ui.bs', [
   'mc.core.ui.bs.elementsAsTags'
   'mc.core.ui.bs.diffTable'
   'mc.core.ui.bs.withClassificationCtrlMixin'
+  'mc.core.ui.bs.orderedMapEditor'
 ]).run ['messages', (messages) ->
   if jQuery
     jQuery(document).on 'keypress', (e) ->
@@ -139,3 +80,5 @@ angular.module('mc.core.ui.bs', [
           element.show()
         e.preventDefault()
 ]
+
+window.modelcatalogue.registerModule 'mc.core.ui.bs'

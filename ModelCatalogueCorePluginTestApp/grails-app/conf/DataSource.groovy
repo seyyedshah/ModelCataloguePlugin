@@ -34,6 +34,7 @@ environments {
     }
     local {
         dataSource {
+        	dialect='org.hibernate.dialect.MySQLInnoDBDialect'
             dbCreate = "create"
             url = "jdbc:mysql://localhost:3306/${System.getProperty('mc.db.schema') ?: System.getenv('METADATA_DB_SCHEMA') ?: 'nhic'}?autoReconnect=true&useUnicode=yes"
             username = System.getenv('METADATA_DB_USERNAME')
@@ -43,6 +44,7 @@ environments {
     }
     cloudbees {
         dataSource {
+        	dialect='org.hibernate.dialect.MySQLInnoDBDialect'
             dbCreate = ""
             url = "jdbc:mysql://ec2-176-34-253-124.eu-west-1.compute.amazonaws.com:3306/modelcatalogue-core-testapp?autoReconnect=true&useUnicode=yes"
             username = System.getenv('METADATA_DB_USERNAME')
@@ -54,6 +56,7 @@ environments {
     production {
         dataSource {
             driverClassName = "com.mysql.jdbc.Driver"
+            dialect='org.hibernate.dialect.MySQLInnoDBDialect'
             url = System.getenv('METADATA_DB_NAME') ?: "jdbc:mysql://localhost:3306/${System.getProperty('mc.db.schema') ?: System.getenv('METADATA_DB_SCHEMA') ?: 'nhic'}?autoReconnect=true&useUnicode=yes"
             username = System.getenv('METADATA_DB_USERNAME')
             password = System.getenv('METADATA_DB_PASSWORD')

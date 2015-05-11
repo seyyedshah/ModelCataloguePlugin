@@ -1,5 +1,5 @@
 angular.module('mc.core.ui.bs.modalPromptEditRelationship', ['mc.util.messages']).config ['messagesProvider', (messagesProvider)->
-  messagesProvider.setPromptFactory 'update-relationship', [ '$modal', '$q', 'messages', 'catalogueElementResource', ($modal, $q, messages, catalogueElementResource) ->
+  messagesProvider.setPromptFactory 'update-relationship', [ '$modal', '$q', 'messages', 'catalogueElementResource', 'enhance', ($modal, $q, messages, catalogueElementResource, enhance) ->
     (title, body, args) ->
       if not args?.element?
         messages.error('Cannot create relationship dialog.', 'The element to be connected to is missing.')
@@ -15,7 +15,7 @@ angular.module('mc.core.ui.bs.modalPromptEditRelationship', ['mc.util.messages']
               <messages-panel messages="messages"></messages-panel>
               <div class="form-group">
                 <label>Metadata</label>
-                <simple-object-editor object="metadata" hints="relationshipTypeInfo.type.metadataHints"></simple-object-editor>
+                <ordered-map-editor object="metadata" hints="relationshipTypeInfo.type.metadataHints"></ordered-map-editor>
                 <p class="help-block">Metadata specific to this relationship. For example <code>contains</code> and <code>parent of</code> relationship types supports <code>Name</code> metadata as an alias of nested model or data element.</p>
               </div>
               <div class="form-group">
@@ -58,7 +58,7 @@ angular.module('mc.core.ui.bs.modalPromptEditRelationship', ['mc.util.messages']
                 <input id="classification" placeholder="Classification (leave blank for inherited)" ng-model="classification" catalogue-element-picker="classification" label="el.name" class="input-sm" typeahead-on-select="updateClassification(classification)">
               </div>
               <div class="new-relationship-modal-prompt-metadata">
-                <simple-object-editor object="metadata" title="Metadata" hints="relationshipTypeInfo.type.metadataHints"></simple-object-editor>
+                <ordered-map-editor object="metadata" title="Metadata" hints="relationshipTypeInfo.type.metadataHints"></ordered-map-editor>
               </div>
             </form>
         </div>
@@ -111,7 +111,7 @@ angular.module('mc.core.ui.bs.modalPromptEditRelationship', ['mc.util.messages']
 
           $scope.messages = messages.createNewMessages()
 
-          $scope.metadata = args.metadata ? {}
+          $scope.metadata = args.metadata ? enhance.getEnhancer('orderedMap').emptyOrderedMap()
 
           $scope.createRelation = ->
             $scope.messages.clearAllMessages()
@@ -130,6 +130,7 @@ angular.module('mc.core.ui.bs.modalPromptEditRelationship', ['mc.util.messages']
             # this is ignored by binding and handled separately
             $scope.relation.metadata = $scope.metadata
             $scope.relation.__classification = $scope.classification
+            $scope.relation.__oldClassification = args.classification
 
             args.element["#{$scope.direction}Relationships"].add($scope.relationshipType.name, $scope.relation, args.update).then (result) ->
               messages.success('Relationship Updated', "You have updated relationship #{$scope.element.name} #{$scope.relationshipTypeInfo.value} #{$scope.relation.name}.")

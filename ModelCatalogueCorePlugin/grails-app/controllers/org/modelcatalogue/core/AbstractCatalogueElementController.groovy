@@ -2,9 +2,10 @@ package org.modelcatalogue.core
 
 import grails.transaction.Transactional
 import org.modelcatalogue.core.publishing.DraftContext
-import org.modelcatalogue.core.security.User
 import org.modelcatalogue.core.util.*
-import org.modelcatalogue.core.util.marshalling.CatalogueElementMarshallers
+import org.modelcatalogue.core.util.builder.RelationshipDefinition
+import org.modelcatalogue.core.util.builder.RelationshipDefinitionBuilder
+import org.modelcatalogue.core.util.marshalling.CatalogueElementMarshaller
 import org.modelcatalogue.core.util.marshalling.RelationshipsMarshaller
 import org.springframework.http.HttpStatus
 
@@ -120,7 +121,7 @@ abstract class AbstractCatalogueElementController<T extends CatalogueElement> ex
 
         rel = relationshipService.moveAfter(direction, owner, rel, current)
 
-        respond(id: rel.id, type: rel.relationshipType, ext: rel.ext, element: rel.source, relation: rel.destination, direction: 'sourceToDestination', removeLink: RelationshipsMarshaller.getDeleteLink(rel.source, rel), archived: rel.archived, elementType: Relationship.name)
+        respond(id: rel.id, type: rel.relationshipType, ext: OrderedMap.toJsonMap(rel.ext), element: rel.source, relation: rel.destination, direction: 'sourceToDestination', removeLink: RelationshipsMarshaller.getDeleteLink(rel.source, rel), archived: rel.archived, elementType: Relationship.name)
     }
 
     private void removeRelation(Long id, String type, boolean outgoing) {
@@ -156,7 +157,10 @@ abstract class AbstractCatalogueElementController<T extends CatalogueElement> ex
                 notFound()
                 return
             }
-            Relationship old = outgoing ?  relationshipService.unlink(source, destination, relationshipType) :  relationshipService.unlink(destination, source, relationshipType)
+
+            Classification classification = otherSide.classification ? Classification.get(otherSide.classification.id) : null
+
+            Relationship old = outgoing ?  relationshipService.unlink(source, destination, relationshipType, classification) :  relationshipService.unlink(destination, source, relationshipType, classification)
             if (!old) {
                 notFound()
                 return
@@ -172,7 +176,7 @@ abstract class AbstractCatalogueElementController<T extends CatalogueElement> ex
         }
     }
 
-    private addRelation(Long id, String type, boolean outgoing) {
+    private void addRelation(Long id, String type, boolean outgoing) {
         withRetryingTransaction {
             if (!modelCatalogueSecurityService.hasRole('CURATOR')) {
                 notAuthorized()
@@ -193,9 +197,16 @@ abstract class AbstractCatalogueElementController<T extends CatalogueElement> ex
 
             }
 
-            Long classificationId = objectToBind.__classification?.id
+            def newClassification = objectToBind['__classification']
+            Long classificationId = newClassification instanceof Map ? newClassification.id : null
 
             Classification classification = classificationId ? Classification.get(classificationId) : null
+
+
+            def oldClassification = objectToBind['__oldClassification']
+            Long oldClassificationId = oldClassification instanceof Map ? oldClassification.id : null
+
+            Classification oldClassificationInstance = oldClassificationId ? Classification.get(oldClassificationId) : null
 
             if (classificationId && !classification) {
                 notFound()
@@ -215,23 +226,30 @@ abstract class AbstractCatalogueElementController<T extends CatalogueElement> ex
                 notFound()
                 return
             }
-            Relationship rel = outgoing ?  relationshipService.link(source, destination, relationshipType, classification) :  relationshipService.link(destination, source, relationshipType, classification)
+
+            if (oldClassificationInstance != classification) {
+                if (outgoing) {
+                    relationshipService.unlink(source, destination, relationshipType, oldClassificationInstance)
+                } else {
+                    relationshipService.unlink(destination, source, relationshipType, oldClassificationInstance)
+                }
+            }
+
+            RelationshipDefinitionBuilder definition = outgoing ? RelationshipDefinition.create(source, destination, relationshipType) : RelationshipDefinition.create(destination, source, relationshipType)
+
+            definition.withClassification(classification).withMetadata(OrderedMap.fromJsonMap(objectToBind.metadata ?: [:]))
+
+            Relationship rel = relationshipService.link(definition.definition)
 
             if (rel.hasErrors()) {
                 respond rel.errors
                 return
             }
 
-            def metadata = objectToBind.metadata
-
-            if (metadata != null) {
-                rel.setExt(metadata)
-            }
-
             response.status = HttpServletResponse.SC_CREATED
             RelationshipDirection direction = outgoing ? RelationshipDirection.OUTGOING : RelationshipDirection.INCOMING
 
-            respond(id: rel.id, type: rel.relationshipType, ext: rel.ext, element: CatalogueElementMarshallers.minimalCatalogueElementJSON(direction.getElement(source, rel)), relation: direction.getRelation(source, rel), direction: direction.getDirection(source, rel), removeLink: RelationshipsMarshaller.getDeleteLink(source, rel), archived: rel.archived, elementType: Relationship.name)
+            respond(id: rel.id, type: rel.relationshipType, ext: OrderedMap.toJsonMap(rel.ext), element: CatalogueElementMarshaller.minimalCatalogueElementJSON(direction.getElement(source, rel)), relation: direction.getRelation(source, rel), direction: direction.getDirection(source, rel), removeLink: RelationshipsMarshaller.getDeleteLink(source, rel), archived: rel.archived, elementType: Relationship.name, classification: rel.classification)
         }
     }
 
@@ -375,7 +393,6 @@ abstract class AbstractCatalogueElementController<T extends CatalogueElement> ex
     protected getDefaultSort()  { actionName == 'index' ? 'name'  : null }
     protected getDefaultOrder() { actionName == 'index' ? 'asc'   : null }
 
-    def relationshipTypeService
     def classificationService
 
     @Override
@@ -409,6 +426,13 @@ abstract class AbstractCatalogueElementController<T extends CatalogueElement> ex
         }
 
         def newVersion = params.boolean('newVersion',false)
+
+        if (instance.status.ordinal() >= ElementStatus.FINALIZED.ordinal() && !newVersion) {
+            instance.errors.rejectValue 'status', 'cannot.modify.finalized.or.deprecated', 'Cannot modify element in finalized or deprecated state!'
+            respond instance.errors, view: 'edit' // STATUS CODE 422
+            return
+        }
+
         def ext = params?.ext
         def oldProps = new HashMap(instance.properties)
         oldProps.remove('modelCatalogueId')
@@ -418,7 +442,7 @@ abstract class AbstractCatalogueElementController<T extends CatalogueElement> ex
         def includeParams = includeFields
 
         if (!newVersion) newVersion = (request.JSON?.newVersion) ? request.JSON?.newVersion?.toBoolean() : false
-        if (!ext) ext = request.JSON?.ext
+        if (!ext) ext = OrderedMap.fromJsonMap(request.JSON?.ext)
 
 
         if (newVersion) includeParams.remove('status')
@@ -445,7 +469,7 @@ abstract class AbstractCatalogueElementController<T extends CatalogueElement> ex
         bindData(instance, getObjectToBind(), [include: includeParams])
         instance.save flush:true
 
-        if (ext) {
+        if (ext != null) {
             instance.setExt(ext.collectEntries { key, value -> [key, value?.toString() == "null" ? null : value]})
         }
 

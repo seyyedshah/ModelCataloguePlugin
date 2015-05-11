@@ -1,14 +1,16 @@
 package org.modelcatalogue.core
 
-import geb.spock.GebReportingSpec
 import org.modelcatalogue.core.pages.ModalTreeViewPage
 import org.openqa.selenium.Keys
 import spock.lang.Stepwise
 
 @Stepwise
-class ModelWizardSpec extends GebReportingSpec {
+class ModelWizardSpec extends AbstractModelCatalogueGebSpec {
 
     def "go to login"() {
+        go "#/"
+        loginAdmin()
+
         when:
         go "#/catalogue/model/all"
 
@@ -24,10 +26,6 @@ class ModelWizardSpec extends GebReportingSpec {
             subviewTitle.text()?.trim()  == 'NHIC Datasets FINALIZED'
         }
 
-        when:
-        loginAdmin()
-
-        then:
         waitFor {
             addModelButton.displayed
         }
@@ -80,10 +78,10 @@ class ModelWizardSpec extends GebReportingSpec {
         and: 'the child is selected'
         $('.search-for-more-icon').click()
         $('.modal-body .input-group-lg input').value('patient')
-        waitFor {
-            $('.list-group-item.item-found').displayed
+
+        noStale({ $('.list-group-item.item-found') }) {
+            it.click()
         }
-        $('.list-group-item.item-found').click()
 
         and: 'create child from scratch and leave it filled in'
         name = 'This should create new child model'
@@ -128,7 +126,7 @@ class ModelWizardSpec extends GebReportingSpec {
 
         then:
         waitFor {
-            $('span.catalogue-element-treeview-name', text: "New").displayed
+            $('span.catalogue-element-treeview-name', text: "New 1").displayed
         }
 
         waitUntilModalClosed(30)
@@ -147,13 +145,13 @@ class ModelWizardSpec extends GebReportingSpec {
 
 
         when:
-        $('#elements').value('xmlschema')
+        $('#includes').value('xmlschema')
         selectCepItemIfExists()
         modalPrimaryButton.click()
 
         then:
         waitFor {
-            !$('span.catalogue-element-treeview-name', text: "New").displayed && menuItem('classifications', 'navigation-bottom-left').text().contains('XMLSchema')
+            !$('span.catalogue-element-treeview-name', text: "New 1").displayed && menuItem('classifications', 'navigation-bottom-left').text().contains('XMLSchema')
         }
 
         when:
@@ -176,7 +174,7 @@ class ModelWizardSpec extends GebReportingSpec {
             !modalDialog.find("#remove-tag-0").displayed
         }
         waitFor {
-            $('span.catalogue-element-treeview-name', text: "New").displayed && menuItem('classifications', 'navigation-bottom-left').text().contains('All Classifications')
+            $('span.catalogue-element-treeview-name', text: "New 1").displayed && menuItem('classifications', 'navigation-bottom-left').text().contains('All Classifications')
         }
 
     }
@@ -235,11 +233,11 @@ class ModelWizardSpec extends GebReportingSpec {
 
         then:
         waitFor {
-            $('span.catalogue-element-treeview-name', text: "Another New").displayed
+            $('span.catalogue-element-treeview-name', text: "Another New 1").displayed
         }
 
         when: "click the footer action"
-        $('span.catalogue-element-treeview-name', text: "Another New").click()
+        $('span.catalogue-element-treeview-name', text: "Another New 1").click()
         tableFooterAction.click()
 
         then: "modal is shown"
@@ -256,7 +254,7 @@ class ModelWizardSpec extends GebReportingSpec {
 
         then: 'the number of children of Another New must be 1'
         waitFor {
-            $('span.catalogue-element-treeview-name', text: "Another New").parent().parent().find('.badge').text() == '1'
+            $('span.catalogue-element-treeview-name', text: "Another New 1").parent().parent().find('.badge').text() == '1'
         }
 
     }
@@ -279,7 +277,7 @@ class ModelWizardSpec extends GebReportingSpec {
 
         then: "same number of children are still shown"
         waitFor {
-            $('span.catalogue-element-treeview-name', text: "Changed Name").parent().parent().find('.badge').text() == '1'
+            $('span.catalogue-element-treeview-name', text: "Changed Name 1").parent().parent().find('.badge').text() == '1'
         }
     }
 

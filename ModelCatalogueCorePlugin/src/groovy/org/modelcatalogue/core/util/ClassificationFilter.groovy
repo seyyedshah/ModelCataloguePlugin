@@ -6,7 +6,7 @@ import com.google.common.collect.ImmutableSet
 import org.modelcatalogue.core.Classification
 import org.modelcatalogue.core.Relationship
 import org.modelcatalogue.core.security.User
-import org.modelcatalogue.core.util.marshalling.CatalogueElementMarshallers
+import org.modelcatalogue.core.util.marshalling.CatalogueElementMarshaller
 
 import java.util.concurrent.TimeUnit
 
@@ -50,6 +50,14 @@ class ClassificationFilter {
 
     static ClassificationFilter create(Iterable<Classification> includes, Iterable<Classification> excludes) {
         new ClassificationFilter(ImmutableSet.copyOf(includes.collect { it.id }), ImmutableSet.copyOf(excludes.collect { it.id }))
+    }
+
+    static ClassificationFilter includes(Classification... includes) {
+        new ClassificationFilter(ImmutableSet.copyOf(includes.collect { it.id }), ImmutableSet.of())
+    }
+
+    static ClassificationFilter excludes(Classification... excludes) {
+        new ClassificationFilter(ImmutableSet.of(), ImmutableSet.copyOf(excludes.collect { it.id }))
     }
 
     static ClassificationFilter from(Map<String, Object> json) {
@@ -129,8 +137,8 @@ class ClassificationFilter {
     Map<String, Object> toMap() {
         [
                 unclassifiedOnly: unclassifiedOnly,
-                includes: includes.collect { CatalogueElementMarshallers.minimalCatalogueElementJSON(Classification.get(it)) },
-                excludes: excludes.collect { CatalogueElementMarshallers.minimalCatalogueElementJSON(Classification.get(it)) }
+                includes: includes.collect { CatalogueElementMarshaller.minimalCatalogueElementJSON(Classification.get(it)) },
+                excludes: excludes.collect { CatalogueElementMarshaller.minimalCatalogueElementJSON(Classification.get(it)) }
         ]
     }
 
