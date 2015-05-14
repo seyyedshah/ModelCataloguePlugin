@@ -1,6 +1,8 @@
 package org.modelcatalogue.core
 
 import com.google.common.base.Function
+import com.google.common.collect.Collections2
+import com.google.common.collect.Iterables
 import com.google.common.collect.Lists
 import grails.util.GrailsNameUtils
 import org.modelcatalogue.core.publishing.DraftContext
@@ -23,6 +25,7 @@ abstract class CatalogueElement implements Extendible<ExtensionValue>, Published
 
     def grailsLinkGenerator
     def relationshipService
+    def auditService
     def mappingService
 
     String name
@@ -234,6 +237,7 @@ abstract class CatalogueElement implements Extendible<ExtensionValue>, Published
             mapping.beforeDelete()
             mapping.delete(flush:true)
         }
+        auditService.logElementDeleted(this)
     }
 
     void setModelCatalogueId(String mcID) {
@@ -311,6 +315,7 @@ abstract class CatalogueElement implements Extendible<ExtensionValue>, Published
             ExtensionValue newOne = new ExtensionValue(name: name, extensionValue: value, element: this)
             FriendlyErrors.failFriendlySaveWithoutFlush(newOne)
             addToExtensions(newOne).save(validate: false)
+            auditService.logNewMetadata(newOne)
             return newOne
         }
 
@@ -319,6 +324,7 @@ abstract class CatalogueElement implements Extendible<ExtensionValue>, Published
 
     @Override
     void removeExtension(ExtensionValue extension) {
+        auditService.logMetadataDeleted(extension)
         removeFromExtensions(extension).save(validate: false)
         extension.delete(flush: true)
     }
@@ -363,6 +369,14 @@ abstract class CatalogueElement implements Extendible<ExtensionValue>, Published
      */
     void afterMerge(CatalogueElement destination) {}
 
+    void afterInsert() {
+        auditService.logElementCreated(this)
+    }
+
+    void beforeUpdate() {
+        auditService.logElementUpdated(this)
+    }
+    
     void clearAssociationsBeforeDelete() {
         for (Classification c in this.classifications) {
             this.removeFromClassifications(c)
@@ -398,6 +412,9 @@ abstract class CatalogueElement implements Extendible<ExtensionValue>, Published
             return old
         }
         old.extensionValue = value
+        if (old.validate()) {
+            auditService.logMetadataUpdated(old)
+        }
         FriendlyErrors.failFriendlySaveWithoutFlush(old)
     }
 }

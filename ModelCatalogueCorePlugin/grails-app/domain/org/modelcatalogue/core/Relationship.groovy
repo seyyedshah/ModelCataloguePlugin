@@ -26,6 +26,8 @@ import org.modelcatalogue.core.util.OrderedMap
 
 class Relationship implements Extendible<RelationshipMetadata> {
 
+    def auditService
+
     CatalogueElement source
     CatalogueElement destination
 
@@ -108,6 +110,7 @@ class Relationship implements Extendible<RelationshipMetadata> {
             RelationshipMetadata newOne = new RelationshipMetadata(name: name, extensionValue: value, relationship: this)
             FriendlyErrors.failFriendlySaveWithoutFlush(newOne)
             addToExtensions(newOne).save(validate: false)
+            auditService.logNewRelationshipMetadata(newOne)
             return newOne
         }
         throw new IllegalStateException("Cannot add extension before saving the element (id: ${getId()}, attached: ${isAttached()})")
@@ -115,6 +118,7 @@ class Relationship implements Extendible<RelationshipMetadata> {
 
     @Override
     void removeExtension(RelationshipMetadata extension) {
+        auditService.logRelationshipMetadataDeleted(extension)
         removeFromExtensions(extension).save()
         extension.delete(flush: true)
     }
@@ -127,6 +131,9 @@ class Relationship implements Extendible<RelationshipMetadata> {
             return old
         }
         old.extensionValue = value
+        if (old.validate()) {
+            auditService.logRelationshipMetadataUpdated(old)
+        }
         FriendlyErrors.failFriendlySaveWithoutFlush(old)
     }
 }

@@ -22,6 +22,7 @@ class DataImportController  {
     def elementService
     def classificationService
     def assetService
+    def auditService
 
 
     private static final CONTENT_TYPES = ['application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/octet-stream', 'application/xml', 'text/xml']
@@ -308,6 +309,9 @@ class DataImportController  {
     }
 
     protected executeInBackground(Long assetId, String message, Closure code) {
-        executorService.submit(code)
+        Long userId = modelCatalogueSecurityService.currentUser?.id
+        executorService.submit {
+            auditService.logExternalChange(Asset.get(assetId), userId, message, code)
+        }
     }
 }
