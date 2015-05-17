@@ -162,7 +162,7 @@ class ModelService {
             dataset('fileLocation':"../GEL_RD_Master.xml", 'name':"Master")
             form(id:"${printXSDFriendlyString(model.name)}") {
                 name model.name
-                instructions model.ext.instructions
+                instructions model?.ext?.instructions
                 version {
                     major model.versionNumber
                     minor 0
@@ -172,9 +172,16 @@ class ModelService {
                 revisionNotes 'Alpha version'
                 formTitle printXSDFriendlyString(model.name)
                 formInitials printXSDFriendlyString(model.name)
-                model.outgoingRelationships.each { Relationship rel ->
-                    if (rel.relationshipType == RelationshipType.containmentType) this.printQuestion(rel.destination, rel.ext, builder)
-                    if (rel.relationshipType == RelationshipType.hierarchyType) this.printSection(rel.destination, rel.ext, builder)
+
+				//order all elements based on their ext.order
+				model.outgoingRelationships.sort({it.ext?.order}).each { Relationship rel ->
+                    if (rel.relationshipType == RelationshipType.containmentType) {
+						this.printQuestion(rel.destination, rel.ext, builder)
+					}
+
+                    if (rel.relationshipType == RelationshipType.hierarchyType) {
+						this.printSection(rel.destination, rel.ext, builder)
+					}
                 }
             }
         }
@@ -182,16 +189,22 @@ class ModelService {
     }
 
     def printSection(Model model, Map ext, MarkupBuilder builder){
-        if(model.ext.repeating=='true') {
+        if(model.ext?.repeating=='true') {
 
-            return builder.repeatingGroup(id: printXSDFriendlyString(model.name), minRepeat: defaultMinOccurs(ext.get("Min Occurs")), maxRepeat: defaultMaxOccurs(ext.get("Max Occurs"))) {
+            return builder.repeatingGroup(id: printXSDFriendlyString(model.name), minRepeat: defaultMinOccurs(model.ext.get("Min Occurs")), maxRepeat: defaultMaxOccurs(model.ext.get("Max Occurs"))) {
                 setOmitEmptyAttributes(true)
                 setOmitNullAttributes(true)
                 name model.name
 
-                model.outgoingRelationships.each { Relationship rel ->
-                    if (rel.relationshipType == RelationshipType.containmentType) this.printQuestion(rel.destination, rel.ext, builder)
-                    if (rel.relationshipType == RelationshipType.hierarchyType) this.printSection(rel.destination, rel.ext, builder)
+                model.outgoingRelationships.sort({it.ext?.order}).each { Relationship rel ->
+
+                    if (rel.relationshipType == RelationshipType.containmentType) {
+						this.printQuestion(rel.destination, rel.ext, builder)
+					}
+
+                    if (rel.relationshipType == RelationshipType.hierarchyType) {
+						this.printSection(rel.destination, rel.ext, builder)
+					}
                 }
             }
 
@@ -202,12 +215,16 @@ class ModelService {
                 setOmitEmptyAttributes(true)
                 setOmitNullAttributes(true)
                 name model.name
-                instructions model.ext.instructions
+                instructions model?.ext?.instructions
 
-                model.outgoingRelationships.each { Relationship rel ->
+                model.outgoingRelationships.sort({it.ext?.order}).each { Relationship rel ->
                     if (
-                    rel.relationshipType == RelationshipType.containmentType) this.printQuestion(rel.destination, rel.ext, builder)
-                    if (rel.relationshipType == RelationshipType.hierarchyType) this.printSection(rel.destination, rel.ext, builder)
+                    rel.relationshipType == RelationshipType.containmentType){
+						this.printQuestion(rel.destination, rel.ext, builder)
+					}
+                    if (rel.relationshipType == RelationshipType.hierarchyType){
+						this.printSection(rel.destination, rel.ext, builder)
+					}
                 }
             }
 
@@ -215,14 +232,34 @@ class ModelService {
     }
 
     def printQuestion(DataElement dataElement, Map ext, MarkupBuilder builder){
-        return builder.question(id: "R_${dataElement.id}", minRepeat: ext.get("Min Occurs"), maxRepeat: ext.get("Max Occurs")){
+
+		def crfElmId =  "DE_${dataElement.id}"
+
+		def crfElmHidden = dataElement?.ext?.hidden?.toLowerCase()
+		if (crfElmHidden != 'true')
+			crfElmHidden = null
+
+
+		def anonymisation = dataElement?.ext?.anonymisation?.toLowerCase()
+		if (anonymisation != 'true')
+			anonymisation = null
+
+
+
+		//if it is hidden and it's id doesn't start with hidden, add 'Hidden_' into its beginning
+		if(crfElmHidden == 'true' && !crfElmId.toLowerCase().startsWith("hidden")){
+			crfElmId = "Hidden_${crfElmId}"
+		}
+
+        return builder.question(id: "${crfElmId}", minRepeat: ext.get("Min Occurs"), maxRepeat: ext.get("Max Occurs"), hidden: crfElmHidden, anonymisation :anonymisation){
             setOmitEmptyAttributes(true)
             setOmitNullAttributes(true)
-            name dataElement.name
-            text dataElement.ext.text
-            instructions dataElement.description
 
-            if(dataElement.ext.serviceLookupName){
+            name dataElement.name
+            text dataElement?.ext.text
+            instructions dataElement?.ext.instructions
+
+            if(dataElement?.ext.serviceLookupName){
                 'service-lookup'(id: dataElement.ext.serviceLookupId, style: dataElement.ext.serviceLookupStyle){
                     name dataElement.ext.serviceLookupName
                 }
@@ -230,16 +267,24 @@ class ModelService {
 
             if(dataElement?.valueDomain?.dataType instanceof EnumeratedType) {
 
-                enumeration(id:printXSDFriendlyString(dataElement.valueDomain.name), style:dataElement.ext.style){
+				def RESPONSE_LABEL = "${printXSDFriendlyString(dataElement.valueDomain.name)}-${defaultEnumerationStyle(dataElement.ext.get("style"))}"
+                enumeration(id:RESPONSE_LABEL, style:dataElement.ext.style){
                     dataElement.valueDomain.dataType.enumerations.each{ key, val ->
                         value (control: key, val)
                     }
                 }
             }else{
+
+				def attributes = [:]
+
+				attributes['validation'] = dataElement?.ext.validation
+				attributes['validation-error-message'] = dataElement?.ext['validation-error-message']
+
+
                 if(dataElement?.valueDomain?.dataType) {
-                    simpleType transformDataType(dataElement?.valueDomain.dataType.name)
+                    simpleType(attributes,transformDataType(dataElement?.valueDomain.dataType.name))
                 }else{
-                    simpleType 'string'
+                    simpleType(attributes){ 'string' }
                 }
             }
 
