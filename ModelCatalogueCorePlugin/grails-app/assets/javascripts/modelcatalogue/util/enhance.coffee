@@ -37,6 +37,9 @@ angular.module('mc.util.enhance', []).provider 'enhance', [ ->
       for enhancer in enhancers when enhancer.condition(result)
         enhancedBy = result.__enhancedBy ? []
         continue if enhancer.name in enhancedBy
+        #Added by Soheil ------
+        continue if enhancedBy == "[\"orderedMap\"]"
+        #----------------------
         enhancedBy.push(enhancer.name)
         result = enhancer.enhancer(result)
         result.__enhancedBy = enhancedBy
