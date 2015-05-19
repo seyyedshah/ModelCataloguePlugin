@@ -233,7 +233,11 @@ class ModelService {
 
     def printQuestion(DataElement dataElement, Map ext, MarkupBuilder builder){
 
+		//try to use id from ext, if it was NOT available use main dataElement.id
 		def crfElmId =  "DE_${dataElement.id}"
+		if(dataElement.ext?.id){
+			crfElmId = dataElement.ext?.id
+		}
 
 		def crfElmHidden = dataElement?.ext?.hidden?.toLowerCase()
 		if (crfElmHidden != 'true')
