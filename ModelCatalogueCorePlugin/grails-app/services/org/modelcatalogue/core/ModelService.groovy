@@ -216,10 +216,10 @@ class ModelService {
 					minor 0
 					patch 0
 				}
-				versionDescription printXSDFriendlyString(model.ext.get('versionDescription'))
-				revisionNotes printXSDFriendlyString(model.ext.get('revisionNotes'))
+				versionDescription model.ext.get('versionDescription')
+				revisionNotes model.ext.get('revisionNotes')
 				formTitle printXSDFriendlyString(model.ext.get('formTitle'))
-				formInitials printXSDFriendlyString(model.ext.get('formInitials'))
+				formInitials model.ext.get('formInitials')
 
 				//if it does not have any section, just add its questions
 				def outgoingHierarchyCount = 0
