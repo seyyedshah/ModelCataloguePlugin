@@ -2,14 +2,8 @@
 // config files can be ConfigSlurper scripts, Java properties files, or classes
 // in the classpath in ConfigSlurper format
 
-// grails.config.locations = [ "classpath:${appName}-config.properties",
-//                             "classpath:${appName}-config.groovy",
-//                             "file:${userHome}/.grails/${appName}-config.properties",
-//                             "file:${userHome}/.grails/${appName}-config.groovy"]
-
-// if (System.properties["${appName}.config.location"]) {
-//    grails.config.locations << "file:" + System.properties["${appName}.config.location"]
-// }
+// will be overriden by specific configuration but needs to exist at least as empty map
+oauth.providers = [:]
 
 grails.project.groupId = appName // change this to alter the default package name and Maven publishing destination
 
@@ -79,7 +73,7 @@ grails.spring.bean.packages = []
 grails.web.disable.multipart = false
 
 // request parameters to mask when logging exceptions
-grails.exceptionresolver.params.exclude = ['password']
+grails.exceptionresolver.params.exclude = ['password', 'password1', 'password2', 'client_secret']
 
 // configure auto-caching of queries by default (if false you can cache individual queries with 'cache: true')
 grails.hibernate.cache.queries = false
@@ -88,18 +82,87 @@ environments {
     development {
         grails.logging.jul.usebridge = true
         grails.serverURL = "http://localhost:${System.getProperty('server.port') ?: 8080}/ModelCatalogueCorePluginTestApp"
+//        discourse {
+//            url = "http://192.168.1.123/"
+//            api {
+//                key = "af9402ba45b8f4aff5a84bcdf6da85fc7548db746026c5095ed652d0f83fcd8b"
+//                user = "discourse"
+//            }
+//            users {
+//                fallbackEmail = 'vladimir.orany+:username@gmail.com'
+//            }
+//            sso {
+//                key = System.getenv('METADATA_DISCOURSE_SSO_KEY') ?: "notasecret"
+//            }
+//        }
+        oauth {
+            providers {
+                google {
+                    // this key is limited to localhost only so no need to hide it
+                    api = org.modelcatalogue.repack.org.scribe.builder.api.GoogleApi20
+                    key = '225917730237-0hg6u55rgnld9cbtm949ab9h9fk5onr3.apps.googleusercontent.com'
+                    secret = 'OG0JVVoy4bnGm48bneIS0haB'
+                    successUri = '/oauth/google/success'
+                    failureUri = '/oauth/google/error'
+                    callback = "${grails.serverURL}/oauth/google/callback"
+                    scope = 'https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email'
+                }
+            }
+        }
+        grails.mc.allow.signup = true
     }
     local {
         grails.logging.jul.usebridge = true
         grails.serverURL =  "http://localhost:${System.getProperty('server.port') ?: 8080}/ModelCatalogueCorePluginTestApp"
     }
     test {
+        // uncomment for debugging failing functional tests on Travis CI
+        grails.assets.bundle=false
+        grails.assets.minifyJs = false
+        oauth {
+            providers {
+                google {
+                    // this key is limited to localhost only so no need to hide it
+                    api = org.modelcatalogue.repack.org.scribe.builder.api.GoogleApi20
+                    key = '225917730237-0hg6u55rgnld9cbtm949ab9h9fk5onr3.apps.googleusercontent.com'
+                    secret = 'OG0JVVoy4bnGm48bneIS0haB'
+                    successUri = '/oauth/google/success'
+                    failureUri = '/oauth/google/error'
+                    callback = "${grails.serverURL}/oauth/google/callback"
+                    scope = 'https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email'
+                }
+            }
+        }
+        grails.mc.allow.signup = true
+
         grails.plugin.console.enabled = true
         grails.serverURL =  "http://localhost:${System.getProperty('server.port') ?: 8080}/ModelCatalogueCorePluginTestApp"
     }
     production {
-        grails.logging.jul.usebridge = false
-        grails.serverURL = System.getenv('METADATA_SERVER_URL') ?:  "http://localhost:${System.getProperty('server.port') ?: 8080}/ModelCatalogueCorePluginTestApp"
+        grails.assets.minifyOptions = [
+                strictSemicolons: false,
+                mangleOptions: [mangle: false, toplevel: false, defines: null, except: null, no_functions:false],
+                genOptions: [indent_start:0, indent_level:4, quote_keys: false, space_colon: false, beautify: false, ascii_only: false, inline_script:false]
+        ]
+
+        grails.assets.minifyJs = true
+
+        grails.config.locations = [ "classpath:mc-config.properties",
+                                    "classpath:mc-config.groovy",
+                                    "file:${userHome}/.grails/mc-config.properties",
+                                    "file:${userHome}/.grails/mc-config.groovy"]
+
+        if (System.properties["mc.config.location"]) {
+            grails.config.locations << "file:" + System.properties["mc.config.location"]
+        }
+
+        if (System.properties['catalina.base']) {
+            def tomcatConfDir = new File("${System.properties['catalina.base']}/conf")
+            if (tomcatConfDir.isDirectory()) {
+                grails.config.locations << "file:${tomcatConfDir.canonicalPath}/mc-config.groovy"
+            }
+        }
+
     }
 }
 
@@ -236,16 +299,6 @@ grails.assets.plugin."model-catalogue-core-plugin".excludes = [
         "**/python3/*.*",
 ]
 
-grails.assets.minifyOptions = [
-        strictSemicolons: false,
-        mangleOptions: [mangle: false, toplevel: false, defines: null, except: null, no_functions:false],
-        genOptions: [indent_start:0, indent_level:4, quote_keys: false, space_colon: false, beautify: false, ascii_only: false, inline_script:false]
-]
-
-//grails.assets.bundle=false
-
-grails.assets.minifyJs = true
-
 
 grails.plugin.springsecurity.useBasicAuth = true
 grails.plugin.springsecurity.basic.realmName = "Model Catalogue"
@@ -259,16 +312,10 @@ grails.plugin.springsecurity.logout.handlerNames = [
         'modelCatalogueSecurityService' // both spring security services implements it
 ]
 
-discourse {
-    url = "http://192.168.1.123/"
-    api {
-        key = "af9402ba45b8f4aff5a84bcdf6da85fc7548db746026c5095ed652d0f83fcd8b"
-        user = "discourse"
-    }
-    users {
-        fallbackEmail = 'vladimir.orany+:username@gmail.com'
-    }
-    sso {
-        key = System.getenv('METADATA_DISCOURSE_SSO_KEY') ?: "notasecret"
-    }
+// Added by the Spring Security OAuth plugin:
+grails.plugin.springsecurity.oauth.domainClass = 'org.modelcatalogue.core.security.OAuthID'
+
+if (!grails.mc.allow.signup) {
+    // for safety reasons, override the default class
+    grails.plugin.springsecurity.oauth.registration.roleNames = ['ROLE_REGISTERED']
 }

@@ -22,8 +22,6 @@ class BootStrap {
     CatalogueBuilder catalogueBuilder
     def sessionFactory
 
-    XLSXListRenderer xlsxListRenderer
-
     def init = { servletContext ->
         if (Environment.current in [Environment.DEVELOPMENT, Environment.TEST]) {
             TestDataHelper.initFreshDb(sessionFactory, 'initTestDatabase.sql') {
@@ -41,6 +39,8 @@ class BootStrap {
         def roleUser = Role.findByAuthority('ROLE_USER') ?: new Role(authority: 'ROLE_USER').save(failOnError: true)
         def roleAdmin = Role.findByAuthority('ROLE_ADMIN') ?: new Role(authority: 'ROLE_ADMIN').save(failOnError: true)
         def metadataCurator = Role.findByAuthority('ROLE_METADATA_CURATOR') ?: new Role(authority: 'ROLE_METADATA_CURATOR').save(failOnError: true)
+
+        Role.findByAuthority('ROLE_REGISTERED') ?: new Role(authority: 'ROLE_REGISTERED').save(failOnError: true)
 
         // keep the passwords lame, they are only for dev/test or very first setup
         // sauce labs connector for some reason fails with the six in the input
@@ -90,6 +90,7 @@ class BootStrap {
         }
 
         createRequestmapIfMissing('/asset/download/*',                      'IS_AUTHENTICATED_FULLY',        org.springframework.http.HttpMethod.GET)
+        createRequestmapIfMissing('/oauth/*/**',                            'IS_AUTHENTICATED_ANONYMOUSLY')
         createRequestmapIfMissing('/user/current',                          'IS_AUTHENTICATED_ANONYMOUSLY',  org.springframework.http.HttpMethod.GET)
         createRequestmapIfMissing('/catalogue/upload',                      'ROLE_METADATA_CURATOR',         org.springframework.http.HttpMethod.POST)
         createRequestmapIfMissing('/catalogue/*/**',                        'IS_AUTHENTICATED_FULLY',        org.springframework.http.HttpMethod.GET)

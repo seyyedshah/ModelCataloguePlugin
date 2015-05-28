@@ -572,7 +572,8 @@ abstract class AbstractCatalogueElementController<T extends CatalogueElement> ex
             return
         }
 
-        instance = elementService.archive(instance)
+        // do not archive relationships as we need to transfer the deprecated elements to the new versions
+        instance = elementService.archive(instance, false)
 
         if (instance.hasErrors()) {
             respond instance.errors, view: 'edit' // STATUS CODE 422
@@ -594,10 +595,6 @@ abstract class AbstractCatalogueElementController<T extends CatalogueElement> ex
     }
 
     def history(Integer max) {
-        if (!modelCatalogueSecurityService.hasRole('CURATOR')) {
-            notAuthorized()
-            return
-        }
         params.max = Math.min(max ?: 10, 100)
         CatalogueElement element = queryForResource(params.id)
         if (!element) {
