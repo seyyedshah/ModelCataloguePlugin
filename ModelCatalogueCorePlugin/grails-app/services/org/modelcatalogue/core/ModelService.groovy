@@ -355,11 +355,11 @@ class ModelService {
 
 
 
-			if (dataElement?.ext.serviceLookupName) {
-				'service-lookup'(id: dataElement.ext.serviceLookupId, style: dataElement.ext.serviceLookupStyle) {
-					name dataElement.ext.serviceLookupName
-				}
-			}
+//			if (dataElement?.ext.serviceLookupName) {
+//				'service-lookup'(id: dataElement.ext.serviceLookupId, style: dataElement.ext.serviceLookupStyle) {
+//					name dataElement.ext.serviceLookupName
+//				}
+//			}
 
 			if (dataElement?.valueDomain?.dataType instanceof EnumeratedType) {
 
