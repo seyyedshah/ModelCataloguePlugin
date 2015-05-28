@@ -379,7 +379,11 @@ class ModelService {
 				//if type is specified in the annotation them ignored the defaul type
 				//and just use it. like FileName in OC forms which are actually String in MC Model
 
-				if (dataElement?.valueDomain?.dataType) {
+				if(ext.get('type'))
+				{
+					simpleType(attributes, transformDataType(ext.get('type')))
+				}
+				else if (dataElement?.valueDomain?.dataType) {
 					simpleType(attributes, transformDataType(dataElement?.valueDomain.dataType.name))
 				} else {
 					simpleType(attributes, 'string')
