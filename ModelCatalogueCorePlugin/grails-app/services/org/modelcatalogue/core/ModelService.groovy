@@ -323,12 +323,12 @@ class ModelService {
 		}
 
 
-		def crfElmHidden = dataElement?.ext?.hidden?.toLowerCase()
+		def crfElmHidden = ext?.hidden?.toLowerCase()
 		if (crfElmHidden != 'true')
 			crfElmHidden = null
 
 
-		def anonymisation = dataElement?.ext?.anonymisation?.toLowerCase()
+		def anonymisation = ext?.anonymisation?.toLowerCase()
 		if (anonymisation != 'true')
 			anonymisation = null
 
@@ -344,10 +344,10 @@ class ModelService {
 			name dataElement.name
 
 			//Right Text
-			instructions dataElement?.ext.instructions
+			instructions ext['instructions']
 
 			//Left text
-			def displayText = dataElement?.ext.text
+			def displayText = ext['text']
 			if(!displayText){
 				displayText = dataElement.name
 			}
@@ -364,7 +364,7 @@ class ModelService {
 			if (dataElement?.valueDomain?.dataType instanceof EnumeratedType) {
 
 				def RESPONSE_LABEL = "${printXSDFriendlyString(dataElement.valueDomain.name)}-${defaultEnumerationStyle(dataElement.ext.get("style"))}"
-				enumeration(id: RESPONSE_LABEL, style: dataElement.ext.style) {
+				enumeration(id: RESPONSE_LABEL, style: ext['style']) {
 					dataElement.valueDomain.dataType.enumerations.each { key, val ->
 						value(control: key, val)
 					}
@@ -373,9 +373,11 @@ class ModelService {
 
 				def attributes = [:]
 
-				attributes['validation'] = dataElement?.ext.validation
-				attributes['validation-error-message'] = dataElement?.ext['validation-error-message']
+				attributes['validation'] = ext['validation']
+				attributes['validation-error-message'] = ext['validation-error-message']
 
+				//if type is specified in the annotation them ignored the defaul type
+				//and just use it. like FileName in OC forms which are actually String in MC Model
 
 				if (dataElement?.valueDomain?.dataType) {
 					simpleType(attributes, transformDataType(dataElement?.valueDomain.dataType.name))
