@@ -8,8 +8,11 @@ import org.modelcatalogue.core.util.ListAndCount
 import org.modelcatalogue.core.util.ListWithTotal
 import org.modelcatalogue.core.util.Lists
 import org.modelcatalogue.core.util.SecuredRuleExecutor
+import org.modelcatalogue.core.publishing.DraftContext
 
 class DataArchitectService {
+
+    static transactional = false
 
     def modelCatalogueSecurityService
     def modelCatalogueSearchService
@@ -17,6 +20,20 @@ class DataArchitectService {
     def elementService
     def actionService
     def classificationService
+
+    private Map<String,Runnable> suggestions = [
+            'Inline Models': this.&generateInlineModel,
+            'Merge Data Elements': this.&generateMergeDataElements,
+            'Merge Models': this.&generateMergeModels,
+            'Enum Duplicates and Synonyms': this.&generatePossibleEnumDuplicatesAndSynonyms,
+            'Rename Data Types and Value Domains': this.&generateRenameDataTypesAndValueDomain,
+            'Deep Classification': this.&generateDeepClassify.curry(false),
+            'Deep Classification (Unclassified Only)': this.&generateDeepClassify.curry(true)
+    ]
+
+    Set<String> getSuggestionsNames() {
+        suggestions.keySet().sort()
+    }
 
     ListWithTotal<DataElement> uninstantiatedDataElements(Map params){
         classificationService.classified Lists.fromCriteria(params, DataElement) {
@@ -345,9 +362,8 @@ class DataArchitectService {
         return null
     }
 
-    def generateMergeModelActions() {
-        // clean old batches
-        Closure reset = { Batch batch ->
+    private Closure getReset() {
+        return { Batch batch ->
             for (Action action in new HashSet<Action>(batch.actions)) {
                 if (action.state in [ActionState.FAILED, ActionState.PENDING]) {
                     batch.removeFromActions(action)
@@ -358,19 +374,232 @@ class DataArchitectService {
             batch.archived =  true
             batch.save(flush: true)
         }
+    }
+
+
+    void addSuggestion(String label, Closure suggestionGenerator) {
+        suggestions[label] = suggestionGenerator
+    }
+
+    def generateSuggestions(String suggestion = null) {
+        def execute = { String label, Runnable cl ->
+            log.info "Creating suggestions '$label'"
+            cl.run()
+            log.info "Suggestions '$label' created"
+        }
+        if (!suggestion) {
+            suggestions.each execute
+        } else {
+            Runnable runnable = suggestions[suggestion]
+            if (!runnable) {
+                log.warn("Trying to run unknown suggestion '$suggestion'")
+                return
+            }
+            execute suggestion, runnable
+        }
+    }
+
+
+    private void generateDeepClassify(boolean unclassifiedOnly = false) {
+        Batch.findAllByNameIlike("Deep Classify '%'").each reset
+
+        List<ElementStatus> statuses = [ElementStatus.FINALIZED, ElementStatus.DRAFT]
+
+        log.info "Generating deep classification suggestions for models => models/data elements"
+        generateDeepClassification(Relationship.executeQuery(unclassifyIfNeeded(unclassifiedOnly,  '''
+            select rel.source, destination
+            from Relationship rel
+            join rel.destination source
+            join source.outgoingRelationships outgoing
+            join outgoing.destination destination
+            where rel.relationshipType = :classificationType
+            and outgoing.relationshipType in :inheriting
+            and source.status in :statuses
+            and destination.status in :statuses
+            and destination not in (
+                select rel2.destination
+                from Relationship rel2
+                where rel2.relationshipType = :classificationType
+                and (rel2.source.id = rel.source.id or rel2.source.latestVersionId = rel.source.latestVersionId)
+            )
+        '''), [
+            classificationType: RelationshipType.classificationType,
+            inheriting: [RelationshipType.hierarchyType, RelationshipType.containmentType],
+            statuses: statuses
+        ]))
+
+
+        log.info "Generating deep classification suggestions for data elements => value domains"
+        //language=HQL
+        generateDeepClassification(Relationship.executeQuery(unclassifyIfNeeded(unclassifiedOnly,  '''
+            select rel.source, destination
+            from DataElement source
+            join source.incomingRelationships rel
+            join source.valueDomain destination
+            where rel.relationshipType = :classificationType
+            and source.status in :statuses
+            and destination.status in :statuses
+            and destination not in (
+                select rel2.destination
+                from Relationship rel2
+                where rel2.relationshipType = :classificationType
+                and (rel2.source.id = rel.source.id or rel2.source.latestVersionId = rel.source.latestVersionId)
+            )
+        '''), [
+                classificationType: RelationshipType.classificationType,
+                statuses: statuses
+        ]))
+
+        log.info "Generating deep classification suggestions for value domains => data types"
+        //language=HQL
+        generateDeepClassification(Relationship.executeQuery(unclassifyIfNeeded(unclassifiedOnly, '''
+            select rel.source, destination
+            from ValueDomain source
+            join source.incomingRelationships rel
+            join source.dataType destination
+            where rel.relationshipType = :classificationType
+            and source.status in :statuses
+            and destination.status in :statuses
+            and destination not in (
+                select rel2.destination
+                from Relationship rel2
+                where rel2.relationshipType = :classificationType
+                and (rel2.source.id = rel.source.id or rel2.source.latestVersionId = rel.source.latestVersionId)
+            )
+        '''), [
+                classificationType: RelationshipType.classificationType,
+                statuses: statuses
+        ]))
+    }
+
+    private static String unclassifyIfNeeded(boolean unclassifiedOnly, String hql, String classifier = "and (rel2.source.id = rel.source.id or rel2.source.latestVersionId = rel.source.latestVersionId)") {
+        if (!unclassifiedOnly) {
+            return hql
+        }
+        return hql.replace(classifier, '')
+    }
+
+    private void generateDeepClassification(result) {
+        for (Object[] row in result) {
+            Classification classification = row[0] as Classification
+            CatalogueElement element = row[1] as CatalogueElement
+
+            Batch batch = Batch.findOrSaveByName("Deep Classify '$classification.name'")
+
+            Action action = actionService.create batch, CreateRelationship, source: AbstractActionRunner.encodeEntity(DraftContext.preferDraft(classification)), destination: AbstractActionRunner.encodeEntity(DraftContext.preferDraft(element)), type: "gorm://org.modelcatalogue.core.RelationshipType:${RelationshipType.classificationType.id}"
+            if (action.hasErrors()) {
+                log.error(org.modelcatalogue.core.util.FriendlyErrors.printErrors("Error generating deep classification action", action.errors))
+            }
+
+            batch.archived = false
+            batch.save(flush: true)
+        }
+    }
+
+    private void generateInlineModel() {
+        Batch.findAllByNameIlike("Inline Model '%'").each reset
+        elementService.findModelsToBeInlined().each { sourceId, destId ->
+            Model model = Model.get(sourceId)
+            Batch batch = Batch.findOrSaveByName("Inline Model '$model.name'")
+            batch.description = """Model '$model.name' was created from XML Schema element but it is actually used only in one place an can be replaced by its type"""
+            Action action = actionService.create batch, MergePublishedElements, source: "gorm://org.modelcatalogue.core.Model:$sourceId", destination: "gorm://org.modelcatalogue.core.Model:$destId"
+            if (action.hasErrors()) {
+                log.error(org.modelcatalogue.core.util.FriendlyErrors.printErrors("Error generating merge model action", action.errors))
+            }
+            batch.archived = false
+            batch.save(flush: true)
+        }
+    }
+
+    private void generateMergeModels() {
+        def duplicateModelsSuggestions = elementService.findDuplicateModelsSuggestions()
 
         Batch.findAllByNameIlike("Create Synonyms for Model '%'").each reset
-        Batch.findAllByNameIlike("Create Synonyms for Data Element '%'").each reset
-        Batch.findAllByNameIlike("Create Synonyms for Enumerated Type '%'").each reset
-        Batch.findAllByNameIlike("Duplicate Candidates of Enumerated Type  '%'").each reset
-        Batch.findAllByNameIlike("Inline Model '%'").each reset
+        duplicateModelsSuggestions.each { destId, sources ->
+            Model model = Model.get(destId)
+            Batch batch = Batch.findOrSaveByName("Create Synonyms for Model '$model.name'")
+            RelationshipType type = RelationshipType.readByName("synonym")
+            sources.each { srcId ->
+                Action action = actionService.create batch, CreateRelationship, source: "gorm://org.modelcatalogue.core.Model:$srcId", destination: "gorm://org.modelcatalogue.core.Model:$destId", type: "gorm://org.modelcatalogue.core.RelationshipType:$type.id"
+                if (action.hasErrors()) {
+                    log.error(org.modelcatalogue.core.util.FriendlyErrors.printErrors("Error generating create synonym action", action.errors))
+                }
+            }
+            batch.archived = false
+            batch.save(flush: true)
+        }
+
         Batch.findAllByNameIlike("Merge Model '%'").each reset
+        duplicateModelsSuggestions.each { destId, sources ->
+            Model model = Model.get(destId)
+            Batch batch = Batch.findOrSaveByName("Merge Model '$model.name'")
+            sources.each { srcId ->
+                Action action = actionService.create batch, MergePublishedElements, source: "gorm://org.modelcatalogue.core.Model:$srcId", destination: "gorm://org.modelcatalogue.core.Model:$destId"
+                if (action.hasErrors()) {
+                    log.error(org.modelcatalogue.core.util.FriendlyErrors.printErrors("Error generating create synonym action", action.errors))
+                }
+            }
+            batch.archived = false
+            batch.save(flush: true)
+        }
+    }
+
+    private void generateMergeDataElements() {
+        def duplicateDataElementsSuggestions = elementService.findDuplicateDataElementsSuggestions()
+
+        Batch.findAllByNameIlike("Create Synonyms for Data Element '%'").each reset
+        duplicateDataElementsSuggestions.each { destId, sources ->
+            DataElement dataElement = DataElement.get(destId)
+            Batch batch = Batch.findOrSaveByName("Create Synonyms for Data Element '$dataElement.name'")
+            RelationshipType type = RelationshipType.readByName("synonym")
+            sources.each { srcId ->
+                Action action = actionService.create batch, CreateRelationship, source: "gorm://org.modelcatalogue.core.DataElement:$srcId", destination: "gorm://org.modelcatalogue.core.DataElement:$destId", type: "gorm://org.modelcatalogue.core.RelationshipType:$type.id"
+                if (action.hasErrors()) {
+                    log.error(org.modelcatalogue.core.util.FriendlyErrors.printErrors("Error generating create synonym action", action.errors))
+                }
+            }
+            batch.archived = false
+            batch.save(flush: true)
+        }
+
         Batch.findAllByNameIlike("Merge Data Element '%'").each reset
+        duplicateDataElementsSuggestions.each { destId, sources ->
+            DataElement dataElement = DataElement.get(destId)
+            Batch batch = Batch.findOrSaveByName("Merge Data Element '$dataElement.name'")
+            sources.each { srcId ->
+                Action action = actionService.create batch, MergePublishedElements, source: "gorm://org.modelcatalogue.core.DataElement:$srcId", destination: "gorm://org.modelcatalogue.core.DataElement:$destId"
+                if (action.hasErrors()) {
+                    log.error(org.modelcatalogue.core.util.FriendlyErrors.printErrors("Error generating create synonym action", action.errors))
+                }
+            }
+            batch.archived = false
+            batch.save(flush: true)
+        }
+    }
 
+    private void generateRenameDataTypesAndValueDomain() {
         Batch.findAllByName("Rename Data Types and Value Domains").each reset
+        Map<Long, String> suggestions = dataTypesNamesSuggestions()
+        if (suggestions) {
+            Batch renameBatch = Batch.findOrSaveByName("Rename Data Types and Value Domains")
+            suggestions.findAll { id, name -> name }.each { id, name ->
+                DataType type = DataType.get(id)
+                String originalName = type.name
+                String newName = "$originalName (in $name)"
+                Action updateDataType = actionService.create renameBatch, UpdateCatalogueElement, id: id, type: DataType.name, name: newName
+                type.relatedValueDomains.each { ValueDomain it ->
+                    actionService.create renameBatch, UpdateCatalogueElement, id: it.id, type: ValueDomain.name, name: newName, relatedDataType: updateDataType
+                }
+            }
+            renameBatch.archived = false
+            renameBatch.save(flush: true)
+        }
+    }
 
+    private void generatePossibleEnumDuplicatesAndSynonyms() {
         def possibleDuplicateEnums = elementService.findDuplicateEnumerationsSuggestions()
 
+        Batch.findAllByNameIlike("Create Synonyms for Enumerated Type '%'").each reset
         possibleDuplicateEnums.each { first, other ->
             EnumeratedType enumeratedType = EnumeratedType.get(first)
             Batch batch = Batch.findOrSaveByName("Create Synonyms for Enumerated Type '$enumeratedType.name'")
@@ -385,6 +614,8 @@ class DataArchitectService {
             batch.save()
         }
 
+        Batch.findAllByNameIlike("Duplicate Candidates of Enumerated Type  '%'").each reset
+
         possibleDuplicateEnums.each { first, other ->
             EnumeratedType enumeratedType = EnumeratedType.get(first)
             Batch batch = Batch.findOrSaveByName("Duplicate Candidates of Enumerated Type '$enumeratedType.name'")
@@ -396,88 +627,6 @@ class DataArchitectService {
             }
             batch.archived = false
             batch.save()
-        }
-
-        Map<Long, String> suggestions = dataTypesNamesSuggestions()
-        if (suggestions) {
-            Batch renameBatch = Batch.findOrSaveByName("Rename Data Types and Value Domains")
-            suggestions.findAll{ id, name -> name }.each { id, name ->
-                DataType type = DataType.get(id)
-                String originalName = type.name
-                String newName = "$originalName (in $name)"
-                Action updateDataType = actionService.create renameBatch, UpdateCatalogueElement, id: id , type: DataType.name, name: newName
-                type.relatedValueDomains.each { ValueDomain it ->
-                    actionService.create renameBatch, UpdateCatalogueElement, id: it.id, type: ValueDomain.name, name: newName, relatedDataType: updateDataType
-                }
-            }
-            renameBatch.archived = false
-            renameBatch.save(flush: true)
-        }
-
-        elementService.findDuplicateDataElementsSuggestions().each { destId, sources ->
-            DataElement dataElement = DataElement.get(destId)
-            Batch batch = Batch.findOrSaveByName("Create Synonyms for Data Element '$dataElement.name'")
-            RelationshipType type = RelationshipType.readByName("synonym")
-            sources.each { srcId ->
-                Action action = actionService.create batch, CreateRelationship, source: "gorm://org.modelcatalogue.core.DataElement:$srcId", destination: "gorm://org.modelcatalogue.core.DataElement:$destId", type: "gorm://org.modelcatalogue.core.RelationshipType:$type.id"
-                if (action.hasErrors()) {
-                    log.error(org.modelcatalogue.core.util.FriendlyErrors.printErrors("Error generating create synonym action", action.errors))
-                }
-            }
-            batch.archived = false
-            batch.save(flush: true)
-        }
-
-        elementService.findDuplicateDataElementsSuggestions().each { destId, sources ->
-            DataElement dataElement = DataElement.get(destId)
-            Batch batch = Batch.findOrSaveByName("Merge Data Element '$dataElement.name'")
-            sources.each { srcId ->
-                Action action = actionService.create batch, MergePublishedElements, source: "gorm://org.modelcatalogue.core.DataElement:$srcId", destination: "gorm://org.modelcatalogue.core.DataElement:$destId"
-                if (action.hasErrors()) {
-                    log.error(org.modelcatalogue.core.util.FriendlyErrors.printErrors("Error generating create synonym action", action.errors))
-                }
-            }
-            batch.archived = false
-            batch.save(flush: true)
-        }
-
-        elementService.findDuplicateModelsSuggestions().each { destId, sources ->
-            Model model = Model.get(destId)
-            Batch batch = Batch.findOrSaveByName("Create Synonyms for Model '$model.name'")
-            RelationshipType type = RelationshipType.readByName("synonym")
-            sources.each { srcId ->
-                Action action = actionService.create batch, CreateRelationship, source: "gorm://org.modelcatalogue.core.Model:$srcId", destination: "gorm://org.modelcatalogue.core.Model:$destId", type: "gorm://org.modelcatalogue.core.RelationshipType:$type.id"
-                if (action.hasErrors()) {
-                    log.error(org.modelcatalogue.core.util.FriendlyErrors.printErrors("Error generating create synonym action", action.errors))
-                }
-            }
-            batch.archived = false
-            batch.save(flush: true)
-        }
-
-        elementService.findDuplicateModelsSuggestions().each { destId, sources ->
-            Model model = Model.get(destId)
-            Batch batch = Batch.findOrSaveByName("Merge Model '$model.name'")
-            sources.each { srcId ->
-                Action action = actionService.create batch, MergePublishedElements, source: "gorm://org.modelcatalogue.core.Model:$srcId", destination: "gorm://org.modelcatalogue.core.Model:$destId"
-                if (action.hasErrors()) {
-                    log.error(org.modelcatalogue.core.util.FriendlyErrors.printErrors("Error generating create synonym action", action.errors))
-                }
-            }
-            batch.archived = false
-            batch.save(flush: true)
-        }
-
-        elementService.findModelsToBeInlined().each { sourceId, destId ->
-            Model model = Model.get(sourceId)
-            Batch batch = Batch.findOrSaveByName("Inline Model '$model.name'")
-            batch.description = """Model '$model.name' was created from XML Schema element but it is actually used only in one place an can be replaced by its type"""
-            Action action = actionService.create batch, MergePublishedElements, source: "gorm://org.modelcatalogue.core.Model:$sourceId", destination: "gorm://org.modelcatalogue.core.Model:$destId"
-            if (action.hasErrors()) {
-                log.error(org.modelcatalogue.core.util.FriendlyErrors.printErrors("Error generating merge model action", action.errors))
-            }
-            batch.archived = false
-            batch.save(flush: true)
         }
     }
 }

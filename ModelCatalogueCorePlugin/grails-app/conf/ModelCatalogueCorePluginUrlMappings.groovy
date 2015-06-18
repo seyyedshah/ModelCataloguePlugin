@@ -128,11 +128,14 @@ class ModelCatalogueCorePluginUrlMappings {
             "/elementsFromCSV" (controller: "dataArchitect", action: "elementsFromCSV", method: HttpMethod.POST)
             "/modelsFromCSV" (controller: "dataArchitect", action: "modelsFromCSV", method: HttpMethod.POST)
             "/generateSuggestions" (controller: "dataArchitect", action: "generateSuggestions", method: HttpMethod.POST)
+            "/suggestionsNames" (controller: "dataArchitect", action: "suggestionsNames", method: HttpMethod.GET)
             "/imports/upload" (controller: "dataImport", action: 'upload', method: HttpMethod.POST)
         }
 
         "/"(view:"index")
         "/api/modelCatalogue/core/dashboard" (controller:"dashboard", action : 'index', method: HttpMethod.GET)
         "/api/modelCatalogue/core/search/$search?" (controller:"search", action : 'index', method: HttpMethod.GET)
+        "/api/modelCatalogue/core/relationship/$id/restore" (controller:"relationship", action : 'restore', method: HttpMethod.POST)
+
 	}
 }
