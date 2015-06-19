@@ -117,33 +117,39 @@ class DiscourseService implements LogoutListener {
     }
 
     String ensureUserExistsInDiscourse(User currentUser) {
-        def result = discourse.users.getUser(currentUser.username, [:])
+        String username = normalizeUsername currentUser.username
+        def result = discourse.users.getUser(username, [:])
 
         if (result.status == 200) {
-            if (currentUser.email && result.data.email != currentUser.email) {
-                throw new IllegalArgumentException("Error verifying user ${currentUser.username}: Found user with same username but different email! MC: ${currentUser.email}, Discourse: ${result.data.email}")
+            if (!result.data.user.admin && currentUser.authorities.any { it.authority == 'ROLE_ADMIN'}) {
+                discourse.users.grantAdmin(result.data.user.id)
             }
-            return currentUser.username
+
+            return username
         }
 
-        result = discourse.users.createUser(currentUser.username, currentUser.email ?: getFallbackEmail(currentUser.username), currentUser.username, discourseSSOKey ? null : UUID.randomUUID().toString(), true)
+        result = discourse.users.createUser(username, currentUser.email ?: getFallbackEmail(currentUser.username), username, UUID.randomUUID().toString(), true)
 
         if (result.status == 500) {
-            throw new IllegalArgumentException("Cannot create user: Discourse Server Error")
+            throw new IllegalArgumentException("Cannot create user for ${currentUser.username} ($currentUser.email)): Discourse Server Error")
         }
 
         if (result.data.errors) {
-            throw new IllegalArgumentException("Cannot create user: ${result.data.errors.join(', ')}")
+            throw new IllegalArgumentException("Cannot create user ${currentUser.username} ($currentUser.email): ${result.data.errors}")
         }
 
-        return currentUser.username
+        if (currentUser.authorities.any { it.authority == 'ROLE_ADMIN'}) {
+            discourse.users.grantAdmin(result.data.user.id)
+        }
+
+        return username
     }
 
     org.modelcatalogue.discourse.sso.User getDiscourseUser() {
         if (!modelCatalogueSecurityService.currentUser) {
             return null
         }
-        new org.modelcatalogue.discourse.sso.User(modelCatalogueSecurityService.currentUser.username, modelCatalogueSecurityService.currentUser.username, modelCatalogueSecurityService.currentUser.email ?: getFallbackEmail(modelCatalogueSecurityService.currentUser.username), modelCatalogueSecurityService.currentUser.id.toString())
+        new org.modelcatalogue.discourse.sso.User(normalizeUsername(modelCatalogueSecurityService.currentUser.username), normalizeUsername(modelCatalogueSecurityService.currentUser.username), modelCatalogueSecurityService.currentUser.email ?: getFallbackEmail(modelCatalogueSecurityService.currentUser.username), modelCatalogueSecurityService.currentUser.id.toString())
     }
 
     /**
@@ -202,5 +208,10 @@ class DiscourseService implements LogoutListener {
             return
         }
         discourse.users.logOut(discourse.users.getUser(user.username).data.user.id)
+    }
+
+
+    static String normalizeUsername(String mcUsername) {
+        mcUsername.replaceAll(/[^a-zA-Z_]/, '_')
     }
 }

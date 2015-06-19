@@ -207,7 +207,9 @@ import org.modelcatalogue.core.*
     }
 
     boolean isRelationshipsChanged() {
-        relationships.any {
+        Set<Long> foundRelationships = []
+
+        boolean relationshipsChanged = relationships.any {
             CatalogueElement source = it.source.findExisting()
 
             if (!source) return true
@@ -222,11 +224,13 @@ import org.modelcatalogue.core.*
 
             Relationship found = Relationship.findBySourceAndDestinationAndRelationshipType(source, destination, type)
 
+
             if (!found) {
                 log.debug "$this has changed at least one relationship $it"
                 return true
             }
 
+            foundRelationships << found.getId()
 
             if (it.extensions != found.ext) {
                 log.debug "$this has changed at least one relationship $it. it has changed metadata. old: ${found.ext}, new: ${it.extensions}"
@@ -235,6 +239,23 @@ import org.modelcatalogue.core.*
 
             return false
         }
+
+        if (relationshipsChanged) {
+            return true
+        }
+
+        if (underControl && !repository.isCopyRelationship()) {
+            CatalogueElement existing = findExisting()
+            if (!existing) {
+                return true
+            }
+            Set<Long> allRelationships = []
+            allRelationships.addAll existing.incomingRelationships*.getId()
+            allRelationships.addAll existing.outgoingRelationships*.getId()
+            return !(allRelationships - foundRelationships).isEmpty()
+        }
+
+        return false
     }
 
     T findExisting() {
