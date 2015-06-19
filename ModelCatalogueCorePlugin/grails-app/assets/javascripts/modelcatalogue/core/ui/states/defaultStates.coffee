@@ -58,6 +58,7 @@ angular.module('mc.core.ui.states.defaultStates', ['ui.router', 'mc.util.ui'])
       $scope.draftAssetCount = ''
       $scope.finalizedAssetCount = ''
 
+    $scope.welcome = modelcatalogue.welcome
 
   ])
 
@@ -705,26 +706,16 @@ angular.module('mc.core.ui.states.defaultStates', ['ui.router', 'mc.util.ui'])
     		<!-- Jumbotron -->
   <div hide-if-logged-in>
 		<div class="jumbotron">
-      <h1>Genomics England</h1>
-			<h2>Model Catalogue</h2>
-				<p>
-
-This catalogue contains the data models (or dataset specifications) used in the collection and management of clinical and laboratory data for the 100,000 Genomes Project.   These models have been developed by Genomics England in collaboration with: the NIHR Oxford Biomedical Research Centre, the NIHR Health Informatics Collaborative, NHS England, and the network of NHS Genomic Medicine Centres.   They are made available under the Apache 2.0 open source license.
-				</p>
-
+      <!-- from config mc.welcome.jumbo -->
+      <div ng-bind-html="welcome.jumbo"></div>
       <form ng-controller="defaultStates.userCtrl">
          <button ng-click="login()" class="btn btn-large btn-primary" type="submit">Login <i class="glyphicon glyphicon-log-in"></i></button>
          <!--a href="" class="btn btn-large btn-primary" >Sign Up <i class="glyphicon glyphicon-pencil"></i></a-->
       </form>
     </div>
 
-		<!-- Example row of columns -->
-		<div id="info" class="row">
-      <div class="col-sm-12">
-
-			</div>
-
-    </div>
+		<!-- from config mc.welcome.info -->
+		<div id="info" class="row" ng-bind-html="welcome.info"></div>
 		<div class="row">
         <div class="col-lg-12 col-sm-12 col-md-12">
             <div class="panel panel-default">
