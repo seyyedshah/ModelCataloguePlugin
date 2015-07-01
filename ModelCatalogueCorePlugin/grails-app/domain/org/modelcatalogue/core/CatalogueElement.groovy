@@ -4,6 +4,7 @@ import com.google.common.base.Function
 import com.google.common.collect.Lists
 import grails.util.GrailsNameUtils
 import org.modelcatalogue.core.api.ElementStatus
+import org.modelcatalogue.core.api.ElementType
 import org.modelcatalogue.core.publishing.DraftContext
 import org.modelcatalogue.core.publishing.Published
 import org.modelcatalogue.core.publishing.Publisher
@@ -14,6 +15,9 @@ import org.modelcatalogue.core.util.FriendlyErrors
 import org.modelcatalogue.core.util.RelationshipDirection
 
 import org.modelcatalogue.core.api.CatalogueElement as ApiCatalogueElement
+import org.modelcatalogue.core.api.RelationshipDirection as ApiRelationshipDirection
+import org.modelcatalogue.core.api.RelationshipType as ApiRelationshipType
+import org.modelcatalogue.core.api.Relationship as ApiRelationship
 
 /**
 * Catalogue Element - there are a number of catalogue elements that make up the model
@@ -56,7 +60,7 @@ abstract class CatalogueElement implements Extendible<ExtensionValue>, Published
     Set<Mapping> outgoingMappings = []
     Set<Mapping> incomingMappings = []
 
-    static transients = ['relations', 'info', 'archived', 'relations', 'incomingRelations', 'outgoingRelations', 'defaultModelCatalogueId', 'ext', 'classifications']
+    static transients = ['relations', 'info', 'archived', 'relations', 'incomingRelations', 'outgoingRelations', 'defaultModelCatalogueId', 'ext', 'classifications', 'elementType']
 
     static hasMany = [incomingRelationships: Relationship, outgoingRelationships: Relationship, outgoingMappings: Mapping,  incomingMappings: Mapping, extensions: ExtensionValue]
 
@@ -423,36 +427,6 @@ abstract class CatalogueElement implements Extendible<ExtensionValue>, Published
     // -- API
 
     @Override
-    List<org.modelcatalogue.core.api.Relationship> getIncomingRelationshipsByType(org.modelcatalogue.core.api.RelationshipType type) {
-        getIncomingRelationshipsByType(type as RelationshipType)
-    }
-
-    @Override
-    List<org.modelcatalogue.core.api.Relationship> getOutgoingRelationshipsByType(org.modelcatalogue.core.api.RelationshipType type) {
-        getOutgoingRelationshipsByType(type as RelationshipType)
-    }
-
-    @Override
-    List<org.modelcatalogue.core.api.Relationship> getRelationshipsByType(org.modelcatalogue.core.api.RelationshipType type) {
-        getRelationshipsByType(type as RelationshipType)
-    }
-
-    @Override
-    int countIncomingRelationshipsByType(org.modelcatalogue.core.api.RelationshipType type) {
-        countIncomingRelationshipsByType(type as RelationshipType)
-    }
-
-    @Override
-    int countOutgoingRelationshipsByType(org.modelcatalogue.core.api.RelationshipType type) {
-        countOutgoingRelationshipsByType(type as RelationshipType)
-    }
-
-    @Override
-    int countRelationshipsByType(org.modelcatalogue.core.api.RelationshipType type) {
-        countRelationshipsByType(type as RelationshipType)
-    }
-
-    @Override
     org.modelcatalogue.core.api.Relationship createLinkTo(Map<String, Object> parameters, org.modelcatalogue.core.api.CatalogueElement destination, org.modelcatalogue.core.api.RelationshipType type) {
         createLinkTo(parameters, destination as CatalogueElement, type as RelationshipType)
     }
@@ -470,5 +444,30 @@ abstract class CatalogueElement implements Extendible<ExtensionValue>, Published
     @Override
     org.modelcatalogue.core.api.Relationship removeLinkFrom(org.modelcatalogue.core.api.CatalogueElement source, org.modelcatalogue.core.api.RelationshipType type) {
         removeLinkFrom(source as CatalogueElement, type as RelationshipType)
+    }
+
+    @Override
+    ElementType getElementType() {
+        return ElementTypes.getByClass(getClass())
+    }
+
+    @Override
+    List<ApiRelationship> getRelationships(ApiRelationshipDirection relationshipDirection, ApiRelationshipType relationshipType) {
+        switch (relationshipDirection) {
+            case ApiRelationshipDirection.OUTGOING: return getOutgoingRelationshipsByType(relationshipType as RelationshipType) as List<ApiRelationship>
+            case ApiRelationshipDirection.INCOMING: return getIncomingRelationshipsByType(relationshipType as RelationshipType) as List<ApiRelationship>
+            case ApiRelationshipDirection.COMBINED: return getRelationshipsByType(relationshipType as RelationshipType) as List<ApiRelationship>
+        }
+        throw new IllegalArgumentException("Unknown direction $relationshipDirection")
+    }
+
+    @Override
+    int countRelationships(ApiRelationshipDirection relationshipDirection, ApiRelationshipType relationshipType) {
+        switch (relationshipDirection) {
+            case ApiRelationshipDirection.OUTGOING: return countOutgoingRelationshipsByType(relationshipType as RelationshipType)
+            case ApiRelationshipDirection.INCOMING: return countIncomingRelationshipsByType(relationshipType as RelationshipType)
+            case ApiRelationshipDirection.COMBINED: return countRelationshipsByType(relationshipType as RelationshipType)
+        }
+        throw new IllegalArgumentException("Unknown direction $relationshipDirection")
     }
 }

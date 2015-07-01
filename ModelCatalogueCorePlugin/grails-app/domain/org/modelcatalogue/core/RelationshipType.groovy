@@ -5,6 +5,7 @@ import com.google.common.cache.CacheBuilder
 import com.google.common.util.concurrent.UncheckedExecutionException
 import grails.util.GrailsNameUtils
 import org.apache.log4j.Logger
+import org.modelcatalogue.core.api.ElementType
 import org.modelcatalogue.core.util.SecuredRuleExecutor
 
 import java.util.concurrent.Callable
@@ -193,6 +194,18 @@ class RelationshipType implements org.modelcatalogue.core.api.RelationshipType {
         readByName("base")
     }
 
+    static getValueDomainType() {
+        readByName("valueDomain")
+    }
+
+    static getDataTypeType() {
+        readByName("dataType")
+    }
+
+    static getUnitOfMeasureType() {
+        readByName("unitOfMeasure")
+    }
+
     static readByName(String name) {
         try {
             Long id = typesCache.get(name, { ->
@@ -259,6 +272,16 @@ class RelationshipType implements org.modelcatalogue.core.api.RelationshipType {
             }
         }
         newParts.join('')
+    }
+
+    @Override
+    ElementType getSourceType() {
+        return ElementTypes.getByClass(sourceClass)
+    }
+
+    @Override
+    ElementType getDestinationType() {
+        return ElementTypes.getByClass(destinationClass)
     }
 }
 
