@@ -4,6 +4,7 @@ import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import org.modelcatalogue.builder.api.CatalogueBuilder
 import org.modelcatalogue.builder.xml.XmlCatalogueBuilder
+import org.modelcatalogue.core.api.Catalogue
 import org.modelcatalogue.integration.excel.ExcelLoader
 import org.modelcatalogue.core.pages.AssetListPage
 import org.modelcatalogue.integration.excel.HeadersMap
@@ -14,8 +15,7 @@ class AssetWizardSpec extends AbstractModelCatalogueGebSpec {
 
     @Rule TemporaryFolder tmp = new TemporaryFolder()
 
-    ClassificationService classificationService
-    ElementService elementService
+    Catalogue catalogue
 
     def "go to login"() {
         go "#/"
@@ -275,7 +275,7 @@ class AssetWizardSpec extends AbstractModelCatalogueGebSpec {
             waitUntilFinalized('Data Elements to Excel.xlsx')
 
             StringWriter sw = new StringWriter()
-            CatalogueBuilder builder = new XmlCatalogueBuilder(sw)
+            CatalogueBuilder builder = new XmlCatalogueBuilder(catalogue, sw)
             ExcelLoader parser = new ExcelLoader(builder)
             parser.importData(HeadersMap.create(), new ByteArrayInputStream(downloadBytes("api/modelCatalogue/core/asset/${currentId}/download")))
 
