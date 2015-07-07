@@ -9,11 +9,14 @@ import groovy.json.internal.LazyMap
 import org.modelcatalogue.core.Classification
 import org.modelcatalogue.core.EnumeratedType
 import org.modelcatalogue.builder.api.CatalogueBuilder
+import org.modelcatalogue.core.api.Catalogue
 import org.modelcatalogue.core.util.builder.DefaultCatalogueBuilder
 
 class UmljService {
 
-    def classificationService, elementService
+    def classificationService
+    def elementService
+    Catalogue catalogue
 
     static transactional = false
 
@@ -28,7 +31,7 @@ class UmljService {
 
     protected void generateCatalogueElements(StarUMLDiagram umlFile, Classification clsf) {
 
-        CatalogueBuilder builder = new DefaultCatalogueBuilder(classificationService, elementService)
+        CatalogueBuilder builder = new DefaultCatalogueBuilder(catalogue, classificationService, elementService)
         builder.build {
             classification(name: clsf.name) {
                 globalSearchFor dataType

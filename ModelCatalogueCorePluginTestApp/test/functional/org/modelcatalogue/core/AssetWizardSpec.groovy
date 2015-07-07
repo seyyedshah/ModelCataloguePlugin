@@ -4,7 +4,6 @@ import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import org.modelcatalogue.builder.api.CatalogueBuilder
 import org.modelcatalogue.builder.xml.XmlCatalogueBuilder
-import org.modelcatalogue.core.util.builder.DefaultCatalogueBuilder
 import org.modelcatalogue.integration.excel.ExcelLoader
 import org.modelcatalogue.core.pages.AssetListPage
 import org.modelcatalogue.integration.excel.HeadersMap

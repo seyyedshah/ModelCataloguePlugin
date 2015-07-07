@@ -2,6 +2,7 @@ package x.org.modelcatalogue.core.util
 
 import grails.test.spock.IntegrationSpec
 import org.modelcatalogue.core.*
+import org.modelcatalogue.core.api.Catalogue
 import org.modelcatalogue.core.publishing.DraftContext
 import org.modelcatalogue.builder.api.CatalogueBuilder
 import org.modelcatalogue.core.util.builder.DefaultCatalogueBuilder
@@ -12,6 +13,7 @@ class CatalogueBuilderIntegrationSpec extends IntegrationSpec {
     def initCatalogueService
     def classificationService
     def elementService
+    Catalogue catalogue
 
     Set<CatalogueElement> created = []
 
@@ -600,7 +602,7 @@ class CatalogueBuilderIntegrationSpec extends IntegrationSpec {
     }
 
     private void build(@DelegatesTo(CatalogueBuilder) Closure cl) {
-        DefaultCatalogueBuilder defaultCatalogueBuilder = new DefaultCatalogueBuilder(classificationService, elementService)
+        DefaultCatalogueBuilder defaultCatalogueBuilder = new DefaultCatalogueBuilder(catalogue, classificationService, elementService)
         defaultCatalogueBuilder.build cl
         created = defaultCatalogueBuilder.created
     }

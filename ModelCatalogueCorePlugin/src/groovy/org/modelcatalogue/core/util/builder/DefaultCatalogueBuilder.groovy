@@ -2,13 +2,14 @@ package org.modelcatalogue.core.util.builder
 
 import grails.util.GrailsNameUtils
 import groovy.util.logging.Log4j
-import org.modelcatalogue.builder.api.BuilderKeyword
-import org.modelcatalogue.builder.api.ModelCatalogueTypes
 import org.modelcatalogue.builder.util.AbstractCatalogueBuilder
 import org.modelcatalogue.builder.api.CatalogueBuilder
 import org.modelcatalogue.builder.api.RelationshipBuilder
 import org.modelcatalogue.builder.api.RelationshipConfiguration
 import org.modelcatalogue.builder.api.RelationshipTypeBuilder
+import org.modelcatalogue.core.api.Catalogue
+import org.modelcatalogue.core.api.ElementType
+import org.modelcatalogue.core.grails.GrailsElementType
 import org.modelcatalogue.core.util.FriendlyErrors
 import org.modelcatalogue.core.*
 import org.modelcatalogue.core.CatalogueElement
@@ -29,7 +30,7 @@ import org.modelcatalogue.core.api.CatalogueElement as ApiCatalogueElement
     /**
      * These classes can be created automatically setting e.g. <code>automatic dataType</code> flag on.
      *
-     * @see #automatic(BuilderKeyword)
+     * @see #automatic(ElementType)
      */
     private static Set<Class> SUPPORTED_FOR_AUTO = [DataType, EnumeratedType, ValueDomain]
 
@@ -53,7 +54,7 @@ import org.modelcatalogue.core.api.CatalogueElement as ApiCatalogueElement
     /**
      * Set of types to be created automatically.
      *
-     * @see #automatic(BuilderKeyword)
+     * @see #automatic(ElementType)
      */
     private Set<Class> createAutomatically = []
 
@@ -61,6 +62,17 @@ import org.modelcatalogue.core.api.CatalogueElement as ApiCatalogueElement
      * Top level builder settings to skip dirty checking during the resolution.
      */
     private boolean skipDrafts
+
+    /**
+     * Creates new catalogue builder with given classification and element services.
+     * @param classificationService classification service
+     * @param elementService element service
+     */
+    DefaultCatalogueBuilder(Catalogue catalogue, ClassificationService classificationService, ElementService elementService) {
+        super(catalogue)
+        this.repository = new CatalogueElementProxyRepository(classificationService, elementService)
+        this.context = new CatalogueBuilderContext(this)
+    }
 
     /**
      * Creates new catalogue builder with given classification and element services.
@@ -282,7 +294,7 @@ import org.modelcatalogue.core.api.CatalogueElement as ApiCatalogueElement
      * @param name name of the child model
      * @param extensions DSL definition closure expecting setting the relationship metadata
      * @see RelationshipConfiguration
-     * @see #globalSearchFor(BuilderKeyword)
+     * @see #globalSearchFor(ElementType)
      */
     void child(String name, @DelegatesTo(RelationshipConfiguration) Closure extensions = {}) {
         rel "hierarchy" to name, extensions
@@ -296,7 +308,7 @@ import org.modelcatalogue.core.api.CatalogueElement as ApiCatalogueElement
      * @param model proxy of the child model
      * @param extensions DSL definition closure expecting setting the relationship metadata
      * @see RelationshipConfiguration
-     * @see #globalSearchFor(BuilderKeyword)
+     * @see #globalSearchFor(ElementType)
      */
     void child(ApiCatalogueElement model, @DelegatesTo(RelationshipConfiguration) Closure extensions = {}) {
         rel "hierarchy" to model, extensions
@@ -325,7 +337,7 @@ import org.modelcatalogue.core.api.CatalogueElement as ApiCatalogueElement
      * @param name name of the contained data element
      * @param extensions DSL definition closure expecting setting the relationship metadata
      * @see RelationshipConfiguration
-     * @see #globalSearchFor(BuilderKeyword)
+     * @see #globalSearchFor(ElementType)
      */
     void contains(String name, @DelegatesTo(RelationshipConfiguration) Closure extensions = {}) {
         rel "containment" to name, extensions
@@ -339,7 +351,7 @@ import org.modelcatalogue.core.api.CatalogueElement as ApiCatalogueElement
      * @param model proxy of the contained data element
      * @param extensions DSL definition closure expecting setting the relationship metadata
      * @see RelationshipConfiguration
-     * @see #globalSearchFor(BuilderKeyword)
+     * @see #globalSearchFor(ElementType)
      */
     void contains(CatalogueElement element, @DelegatesTo(RelationshipConfiguration) Closure extensions = {}) {
         rel "containment" to element, extensions
@@ -357,7 +369,7 @@ import org.modelcatalogue.core.api.CatalogueElement as ApiCatalogueElement
      */
     void basedOn(String classification, String name, @DelegatesTo(RelationshipConfiguration) Closure extensions = {}) {
         context.withContextElement(CatalogueElement) {
-            rel "base" from ModelCatalogueTypes.getType(it.domain) called classification, name, extensions
+            rel "base" from GrailsElementType.getType(it.domain) called classification, name, extensions
         }
     }
 
@@ -370,11 +382,11 @@ import org.modelcatalogue.core.api.CatalogueElement as ApiCatalogueElement
      * @param name name of the base element
      * @param extensions DSL definition closure expecting setting the relationship metadata
      * @see RelationshipConfiguration
-     * @see #globalSearchFor(BuilderKeyword)
+     * @see #globalSearchFor(ElementType)
      */
     void basedOn(String name, @DelegatesTo(RelationshipConfiguration) Closure extensions = {}) {
         context.withContextElement(CatalogueElement) {
-            rel "base" from ModelCatalogueTypes.getType(it.domain) called name, extensions
+            rel "base" from GrailsElementType.getType(it.domain) called name, extensions
         }
     }
 
@@ -386,7 +398,7 @@ import org.modelcatalogue.core.api.CatalogueElement as ApiCatalogueElement
      * @param model proxy of the base element
      * @param extensions DSL definition closure expecting setting the relationship metadata
      * @see RelationshipConfiguration
-     * @see #globalSearchFor(BuilderKeyword)
+     * @see #globalSearchFor(ElementType)
      */
     void basedOn(ApiCatalogueElement element, @DelegatesTo(RelationshipConfiguration) Closure extensions = {}) {
         rel "base" from element, extensions
@@ -519,8 +531,8 @@ import org.modelcatalogue.core.api.CatalogueElement as ApiCatalogueElement
      *
      * @param type type for unclassified searches
      */
-    void globalSearchFor(BuilderKeyword type){
-        if (type instanceof ModelCatalogueTypes) {
+    void globalSearchFor(ElementType type){
+        if (type instanceof GrailsElementType) {
             repository.unclassifiedQueriesFor << type.implementation
         } else {
             throw new IllegalArgumentException("Unsupported keyword: $type")
@@ -540,8 +552,8 @@ import org.modelcatalogue.core.api.CatalogueElement as ApiCatalogueElement
      *
      * @param type either dataType or valueDomain
      */
-    void automatic(BuilderKeyword type){
-        if (type instanceof ModelCatalogueTypes) {
+    void automatic(ElementType type){
+        if (type instanceof GrailsElementType) {
             if (!(type.implementation in SUPPORTED_FOR_AUTO)) {
                 throw new IllegalArgumentException("Only supported values are ${SUPPORTED_FOR_AUTO.collect{GrailsNameUtils.getPropertyName(it)}.join(', ')}")
             }

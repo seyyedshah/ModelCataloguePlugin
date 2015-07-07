@@ -1,5 +1,6 @@
 package org.modelcatalogue.core
 
+import org.modelcatalogue.core.api.Catalogue
 import org.modelcatalogue.core.api.ElementStatus
 import org.modelcatalogue.integration.excel.ExcelLoader
 import org.modelcatalogue.integration.excel.HeadersMap
@@ -23,6 +24,7 @@ class DataImportController  {
     def classificationService
     def assetService
     def auditService
+    Catalogue catalogue
 
 
     private static final CONTENT_TYPES = ['application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/octet-stream', 'application/xml', 'text/xml']
@@ -78,7 +80,7 @@ class DataImportController  {
             HeadersMap headersMap = HeadersMap.create(request.JSON.headersMap ?: [:])
             executeInBackground(id, "Imported from Excel") {
                 try {
-                    DefaultCatalogueBuilder builder = new DefaultCatalogueBuilder(classificationService, elementService)
+                    DefaultCatalogueBuilder builder = new DefaultCatalogueBuilder(catalogue, classificationService, elementService)
                     ExcelLoader parser = new ExcelLoader(builder)
                     parser.importData(headersMap, inputStream)
                     finalizeAsset(id)
@@ -96,7 +98,7 @@ class DataImportController  {
             InputStream inputStream = file.inputStream
             executeInBackground(id, "Imported from XML") {
                 try {
-                    CatalogueXmlLoader loader = new CatalogueXmlLoader(new DefaultCatalogueBuilder(classificationService, elementService))
+                    CatalogueXmlLoader loader = new CatalogueXmlLoader(new DefaultCatalogueBuilder(catalogue, classificationService, elementService))
                     loader.load(inputStream)
                     finalizeAsset(id)
                 } catch (Exception e) {
@@ -115,7 +117,7 @@ class DataImportController  {
             String idpattern = params.idpattern
             executeInBackground(id, "Imported from OBO") {
                 try {
-                    DefaultCatalogueBuilder builder = new DefaultCatalogueBuilder(classificationService, elementService)
+                    DefaultCatalogueBuilder builder = new DefaultCatalogueBuilder(catalogue, classificationService, elementService)
                     OboLoader loader = new OboLoader(builder)
                     idpattern = idpattern ?: "${grailsApplication.config.grails.serverURL}/catalogue/ext/${OboLoader.OBO_ID}/:id".toString().replace(':id', '$id')
                     loader.load(inputStream, name, idpattern)

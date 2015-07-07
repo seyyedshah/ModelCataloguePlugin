@@ -1,14 +1,14 @@
 package org.modelcatalogue.core.util.builder
 
-import org.modelcatalogue.builder.api.BuilderKeyword
-import org.modelcatalogue.builder.api.ModelCatalogueTypes
 import org.modelcatalogue.builder.api.RelationshipBuilder
 import org.modelcatalogue.builder.api.RelationshipConfiguration
 import org.modelcatalogue.core.Classification
 import org.modelcatalogue.core.DataType
 import org.modelcatalogue.core.EnumeratedType
 import org.modelcatalogue.core.api.CatalogueElement
+import org.modelcatalogue.core.api.ElementType
 import org.modelcatalogue.core.api.RelationshipType
+import org.modelcatalogue.core.grails.GrailsElementType
 
 /**
  * RelationshipBuilder is supplementary class to CatalogueBuilder handling part of the DSL dealing with creating
@@ -181,8 +181,8 @@ class DefaultRelationshipBuilder implements RelationshipBuilder {
      * @param domain expected type of the destination
      * @return self
      */
-    DefaultRelationshipBuilder to(BuilderKeyword type) {
-        if (type instanceof ModelCatalogueTypes) {
+    DefaultRelationshipBuilder to(ElementType type) {
+        if (type instanceof GrailsElementType) {
             destinationClassHint = type.implementation == EnumeratedType ? DataType : type.implementation
         } else {
             throw new IllegalArgumentException("Unsupported keyword: $type")
@@ -196,8 +196,8 @@ class DefaultRelationshipBuilder implements RelationshipBuilder {
      * @param domain expected type of the source
      * @return self
      */
-    DefaultRelationshipBuilder from(BuilderKeyword type) {
-        if (type instanceof ModelCatalogueTypes) {
+    DefaultRelationshipBuilder from(ElementType type) {
+        if (type instanceof GrailsElementType) {
             sourceClassHint = type.implementation == EnumeratedType ? DataType : type.implementation
         } else {
             throw new IllegalArgumentException("Unsupported keyword: $type")

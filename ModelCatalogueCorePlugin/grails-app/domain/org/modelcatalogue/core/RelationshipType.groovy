@@ -6,6 +6,9 @@ import com.google.common.util.concurrent.UncheckedExecutionException
 import grails.util.GrailsNameUtils
 import org.apache.log4j.Logger
 import org.modelcatalogue.core.api.ElementType
+import org.modelcatalogue.core.api.Identifier
+import org.modelcatalogue.core.grails.GrailsElementType
+import org.modelcatalogue.core.repository.api.LongIdentifier
 import org.modelcatalogue.core.util.SecuredRuleExecutor
 
 import java.util.concurrent.Callable
@@ -276,12 +279,17 @@ class RelationshipType implements org.modelcatalogue.core.api.RelationshipType {
 
     @Override
     ElementType getSourceType() {
-        return ElementTypes.getByClass(sourceClass)
+        return GrailsElementType.getType(sourceClass)
     }
 
     @Override
     ElementType getDestinationType() {
-        return ElementTypes.getByClass(destinationClass)
+        return GrailsElementType.getType(destinationClass)
+    }
+
+    @Override
+    Identifier getIdentifier() {
+        return LongIdentifier.create(getId())
     }
 }
 

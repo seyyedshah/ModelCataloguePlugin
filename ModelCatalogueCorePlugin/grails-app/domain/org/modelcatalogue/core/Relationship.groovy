@@ -1,5 +1,7 @@
 package org.modelcatalogue.core
 
+import org.modelcatalogue.core.api.Identifier
+import org.modelcatalogue.core.repository.api.LongIdentifier
 import org.modelcatalogue.core.util.ExtensionsWrapper
 import org.modelcatalogue.core.util.FriendlyErrors
 import org.modelcatalogue.core.util.OrderedMap
@@ -135,5 +137,20 @@ class Relationship implements Extendible<RelationshipMetadata>, org.modelcatalog
             auditService.logRelationshipMetadataUpdated(old)
         }
         FriendlyErrors.failFriendlySaveWithoutFlush(old)
+    }
+
+    @Override
+    boolean isArchived() {
+        return archived
+    }
+
+    @Override
+    org.modelcatalogue.core.api.CatalogueElement getNamespace() {
+        return classification
+    }
+
+    @Override
+    Identifier getIdentifier() {
+        return LongIdentifier.create(getId())
     }
 }

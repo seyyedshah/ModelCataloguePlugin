@@ -5,6 +5,7 @@ import org.codehaus.groovy.control.customizers.SecureASTCustomizer
 import org.codehaus.groovy.grails.io.support.PathMatchingResourcePatternResolver
 import org.codehaus.groovy.grails.io.support.Resource
 import org.grails.datastore.gorm.GormStaticApi
+import org.modelcatalogue.core.api.Catalogue
 import org.modelcatalogue.core.api.ElementStatus
 import org.modelcatalogue.core.util.FriendlyErrors
 import org.modelcatalogue.builder.api.CatalogueBuilder
@@ -20,6 +21,7 @@ class InitCatalogueService {
     def classificationService
     def elementService
     def sessionFactory
+    Catalogue catalogue
 
     def initCatalogue(boolean test = false){
         Closure init = {
@@ -114,7 +116,7 @@ class InitCatalogueService {
     }
 
     Set<CatalogueElement> importMCFile(InputStream inputStream, boolean skipDraft = false) {
-        DefaultCatalogueBuilder builder = new DefaultCatalogueBuilder(classificationService, elementService)
+        DefaultCatalogueBuilder builder = new DefaultCatalogueBuilder(catalogue, classificationService, elementService)
         if (skipDraft) {
             builder.skip ElementStatus.DRAFT
         }

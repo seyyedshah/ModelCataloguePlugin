@@ -3,12 +3,16 @@ package org.modelcatalogue.core
 import com.google.common.base.Function
 import com.google.common.collect.Lists
 import grails.util.GrailsNameUtils
+import org.hibernate.proxy.HibernateProxyHelper
 import org.modelcatalogue.core.api.ElementStatus
 import org.modelcatalogue.core.api.ElementType
+import org.modelcatalogue.core.api.Identifier
+import org.modelcatalogue.core.grails.GrailsElementType
 import org.modelcatalogue.core.publishing.DraftContext
 import org.modelcatalogue.core.publishing.Published
 import org.modelcatalogue.core.publishing.Publisher
 import org.modelcatalogue.core.publishing.PublishingChain
+import org.modelcatalogue.core.repository.api.LongIdentifier
 import org.modelcatalogue.core.security.User
 import org.modelcatalogue.core.util.ExtensionsWrapper
 import org.modelcatalogue.core.util.FriendlyErrors
@@ -60,7 +64,7 @@ abstract class CatalogueElement implements Extendible<ExtensionValue>, Published
     Set<Mapping> outgoingMappings = []
     Set<Mapping> incomingMappings = []
 
-    static transients = ['relations', 'info', 'archived', 'relations', 'incomingRelations', 'outgoingRelations', 'defaultModelCatalogueId', 'ext', 'classifications', 'elementType']
+    static transients = ['relations', 'info', 'archived', 'relations', 'incomingRelations', 'outgoingRelations', 'defaultModelCatalogueId', 'ext', 'classifications', 'elementType', 'rootId', 'identifier']
 
     static hasMany = [incomingRelationships: Relationship, outgoingRelationships: Relationship, outgoingMappings: Mapping,  incomingMappings: Mapping, extensions: ExtensionValue]
 
@@ -423,51 +427,23 @@ abstract class CatalogueElement implements Extendible<ExtensionValue>, Published
         FriendlyErrors.failFriendlySaveWithoutFlush(old)
     }
 
-
-    // -- API
-
     @Override
-    org.modelcatalogue.core.api.Relationship createLinkTo(Map<String, Object> parameters, org.modelcatalogue.core.api.CatalogueElement destination, org.modelcatalogue.core.api.RelationshipType type) {
-        createLinkTo(parameters, destination as CatalogueElement, type as RelationshipType)
+    Identifier getRoodId() {
+        return LongIdentifier.create(latestVersionId)
     }
 
     @Override
-    org.modelcatalogue.core.api.Relationship createLinkFrom(Map<String, Object> parameters, org.modelcatalogue.core.api.CatalogueElement source, org.modelcatalogue.core.api.RelationshipType type) {
-        createLinkFrom(parameters, source as CatalogueElement, type as RelationshipType)
-    }
-
-    @Override
-    org.modelcatalogue.core.api.Relationship removeLinkTo(org.modelcatalogue.core.api.CatalogueElement destination, org.modelcatalogue.core.api.RelationshipType type) {
-        removeLinkTo(destination as CatalogueElement, type as RelationshipType)
-    }
-
-    @Override
-    org.modelcatalogue.core.api.Relationship removeLinkFrom(org.modelcatalogue.core.api.CatalogueElement source, org.modelcatalogue.core.api.RelationshipType type) {
-        removeLinkFrom(source as CatalogueElement, type as RelationshipType)
+    void setRootId(Identifier identifier) {
+        latestVersionId = identifier.toExternalForm() as Long
     }
 
     @Override
     ElementType getElementType() {
-        return ElementTypes.getByClass(getClass())
+        return GrailsElementType.getType(HibernateProxyHelper.getClassWithoutInitializingProxy(this))
     }
 
     @Override
-    List<ApiRelationship> getRelationships(ApiRelationshipDirection relationshipDirection, ApiRelationshipType relationshipType) {
-        switch (relationshipDirection) {
-            case ApiRelationshipDirection.OUTGOING: return getOutgoingRelationshipsByType(relationshipType as RelationshipType) as List<ApiRelationship>
-            case ApiRelationshipDirection.INCOMING: return getIncomingRelationshipsByType(relationshipType as RelationshipType) as List<ApiRelationship>
-            case ApiRelationshipDirection.COMBINED: return getRelationshipsByType(relationshipType as RelationshipType) as List<ApiRelationship>
-        }
-        throw new IllegalArgumentException("Unknown direction $relationshipDirection")
-    }
-
-    @Override
-    int countRelationships(ApiRelationshipDirection relationshipDirection, ApiRelationshipType relationshipType) {
-        switch (relationshipDirection) {
-            case ApiRelationshipDirection.OUTGOING: return countOutgoingRelationshipsByType(relationshipType as RelationshipType)
-            case ApiRelationshipDirection.INCOMING: return countIncomingRelationshipsByType(relationshipType as RelationshipType)
-            case ApiRelationshipDirection.COMBINED: return countRelationshipsByType(relationshipType as RelationshipType)
-        }
-        throw new IllegalArgumentException("Unknown direction $relationshipDirection")
+    Identifier getIdentifier() {
+        return LongIdentifier.create(getId())
     }
 }

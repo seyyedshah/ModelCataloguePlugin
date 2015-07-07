@@ -17,6 +17,7 @@ class CatalogueXmlPrinterSpec extends AbstractIntegrationSpec {
     def classificationService
     def elementService
     def modelService
+    Catalogue catalogue
 
 
     def setup() {
@@ -120,7 +121,7 @@ class CatalogueXmlPrinterSpec extends AbstractIntegrationSpec {
     }
 
     private <E extends CatalogueElement> E build(@DelegatesTo(CatalogueBuilder) Closure cl) {
-        DefaultCatalogueBuilder defaultCatalogueBuilder = new DefaultCatalogueBuilder(classificationService, elementService)
+        DefaultCatalogueBuilder defaultCatalogueBuilder = new DefaultCatalogueBuilder(catalogue, classificationService, elementService)
         defaultCatalogueBuilder.build cl
         defaultCatalogueBuilder.created.first() as E
     }

@@ -3,6 +3,11 @@ package org.modelcatalogue.core.util.builder
 import groovy.util.logging.Log4j
 import org.modelcatalogue.core.*
 import org.modelcatalogue.core.api.ElementStatus
+import org.modelcatalogue.core.api.ElementType
+import org.modelcatalogue.core.api.Identifier
+import org.modelcatalogue.core.grails.GrailsElementType
+import org.modelcatalogue.core.repository.api.LongIdentifier
+
 
 @Log4j class DefaultCatalogueElementProxy<T extends CatalogueElement> implements CatalogueElementProxy<T>, org.modelcatalogue.core.api.CatalogueElement {
 
@@ -408,56 +413,6 @@ import org.modelcatalogue.core.api.ElementStatus
     }
 
     @Override
-    List<org.modelcatalogue.core.api.Relationship> getIncomingRelationshipsByType(org.modelcatalogue.core.api.RelationshipType type) {
-        throw new UnsupportedOperationException("Not Implemented")
-    }
-
-    @Override
-    List<org.modelcatalogue.core.api.Relationship> getOutgoingRelationshipsByType(org.modelcatalogue.core.api.RelationshipType type) {
-        throw new UnsupportedOperationException("Not Implemented")
-    }
-
-    @Override
-    List<org.modelcatalogue.core.api.Relationship> getRelationshipsByType(org.modelcatalogue.core.api.RelationshipType type) {
-        throw new UnsupportedOperationException("Not Implemented")
-    }
-
-    @Override
-    int countIncomingRelationshipsByType(org.modelcatalogue.core.api.RelationshipType type) {
-        throw new UnsupportedOperationException("Not Implemented")
-    }
-
-    @Override
-    int countOutgoingRelationshipsByType(org.modelcatalogue.core.api.RelationshipType type) {
-        throw new UnsupportedOperationException("Not Implemented")
-    }
-
-    @Override
-    int countRelationshipsByType(org.modelcatalogue.core.api.RelationshipType type) {
-        throw new UnsupportedOperationException("Not Implemented")
-    }
-
-    @Override
-    org.modelcatalogue.core.api.Relationship createLinkTo(Map<String, Object> parameters, org.modelcatalogue.core.api.CatalogueElement destination, org.modelcatalogue.core.api.RelationshipType type) {
-        throw new UnsupportedOperationException("Not Implemented")
-    }
-
-    @Override
-    org.modelcatalogue.core.api.Relationship createLinkFrom(Map<String, Object> parameters, org.modelcatalogue.core.api.CatalogueElement source, org.modelcatalogue.core.api.RelationshipType type) {
-        throw new UnsupportedOperationException("Not Implemented")
-    }
-
-    @Override
-    org.modelcatalogue.core.api.Relationship removeLinkTo(org.modelcatalogue.core.api.CatalogueElement destination, org.modelcatalogue.core.api.RelationshipType type) {
-        throw new UnsupportedOperationException("Not Implemented")
-    }
-
-    @Override
-    org.modelcatalogue.core.api.Relationship removeLinkFrom(org.modelcatalogue.core.api.CatalogueElement source, org.modelcatalogue.core.api.RelationshipType type) {
-        throw new UnsupportedOperationException("Not Implemented")
-    }
-
-    @Override
     Map<String, String> getExt() {
         throw new UnsupportedOperationException("Not Implemented")
     }
@@ -470,5 +425,35 @@ import org.modelcatalogue.core.api.ElementStatus
     @Override
     void setStatus(ElementStatus status) {
         parameters.status = status
+    }
+
+    @Override
+    Identifier getRoodId() {
+        return org.modelcatalogue.core.repository.api.LongIdentifier.create(parameters.latestVersionId)
+    }
+
+    @Override
+    void setRootId(Identifier identifier) {
+        parameters.latestVersionId = identifier.toExternalForm()
+    }
+
+    @Override
+    Integer getVersionNumber() {
+        return parameters.versionNumber as Integer
+    }
+
+    @Override
+    void setVersionNumber(Integer integer) {
+        parameters.versionNumber = integer
+    }
+
+    @Override
+    ElementType getElementType() {
+        return GrailsElementType.getType(domain)
+    }
+
+    @Override
+    Identifier getIdentifier() {
+        return LongIdentifier.create(findExisting()?.getId())
     }
 }
