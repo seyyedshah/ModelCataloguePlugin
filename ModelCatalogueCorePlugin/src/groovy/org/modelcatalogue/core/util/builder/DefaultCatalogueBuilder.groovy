@@ -66,14 +66,20 @@ import org.modelcatalogue.core.api.CatalogueFactory
     private boolean skipDrafts
 
     /**
+     * If false, all imported relationships will be system.
+     */
+    private boolean canCreateRelationshipTypes
+
+    /**
      * Creates new catalogue builder with given classification and element services.
      * @param classificationService classification service
      * @param elementService element service
      */
-    DefaultCatalogueBuilder(Catalogue catalogue, ClassificationService classificationService, ElementService elementService) {
+    DefaultCatalogueBuilder(Catalogue catalogue, ClassificationService classificationService, ElementService elementService, boolean canCreateRelationshipTypes = false) {
         super(catalogue)
         this.repository = new CatalogueElementProxyRepository(classificationService, elementService)
         this.context = new CatalogueBuilderContext(catalogue, this, GrailsElementType.CATALOGUE_ELEMENT)
+        this.canCreateRelationshipTypes = canCreateRelationshipTypes
     }
 
     /**
@@ -82,9 +88,10 @@ import org.modelcatalogue.core.api.CatalogueFactory
      * @param elementService element service
      * @deprecated use DefaultCatalogueBuilder(Catalogue, ClassificationService, ElementService)
      */
-    DefaultCatalogueBuilder(ClassificationService classificationService, ElementService elementService) {
+    DefaultCatalogueBuilder(ClassificationService classificationService, ElementService elementService, boolean canCreateRelationshipTypes = false) {
         this.repository = new CatalogueElementProxyRepository(classificationService, elementService)
         this.context = new CatalogueBuilderContext(CatalogueFactory.catalogue, this, GrailsElementType.CATALOGUE_ELEMENT)
+        this.canCreateRelationshipTypes = canCreateRelationshipTypes
     }
 
     /**
@@ -574,7 +581,7 @@ import org.modelcatalogue.core.api.CatalogueFactory
         }
 
         type = new RelationshipType(name: map.name)
-        type.system = repository.canCreateRelationshipTypes ? map.system : true
+        type.system = canCreateRelationshipTypes ? map.system : true
         type.bidirectional = map.bidirectional
         type.versionSpecific = map.versionSpecific
         type.sourceClass = Class.forName(map.source?.toString())

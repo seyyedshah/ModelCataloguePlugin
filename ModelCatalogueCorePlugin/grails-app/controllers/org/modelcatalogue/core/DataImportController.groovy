@@ -72,6 +72,7 @@ class DataImportController  {
         }
         conceptualDomainName = trimString(params.conceptualDomain)
         def confType = file.getContentType()
+        boolean isAdmin = modelCatalogueSecurityService.hasRole('ADMIN')
 
         if (CONTENT_TYPES.contains(confType) && file.size > 0 && file.originalFilename.contains(".xls")) {
             def asset = storeAsset(params, file, 'application/vnd.ms-excel')
@@ -80,7 +81,7 @@ class DataImportController  {
             HeadersMap headersMap = HeadersMap.create(request.JSON.headersMap ?: [:])
             executeInBackground(id, "Imported from Excel") {
                 try {
-                    DefaultCatalogueBuilder builder = new DefaultCatalogueBuilder(catalogue, classificationService, elementService)
+                    DefaultCatalogueBuilder builder = new DefaultCatalogueBuilder(catalogue, classificationService, elementService, isAdmin)
                     ExcelLoader parser = new ExcelLoader(builder)
                     parser.importData(headersMap, inputStream)
                     finalizeAsset(id)
@@ -98,7 +99,7 @@ class DataImportController  {
             InputStream inputStream = file.inputStream
             executeInBackground(id, "Imported from XML") {
                 try {
-                    CatalogueXmlLoader loader = new CatalogueXmlLoader(new DefaultCatalogueBuilder(catalogue, classificationService, elementService))
+                    CatalogueXmlLoader loader = new CatalogueXmlLoader(new DefaultCatalogueBuilder(catalogue, classificationService, elementService, isAdmin))
                     loader.load(inputStream)
                     finalizeAsset(id)
                 } catch (Exception e) {
@@ -117,7 +118,7 @@ class DataImportController  {
             String idpattern = params.idpattern
             executeInBackground(id, "Imported from OBO") {
                 try {
-                    DefaultCatalogueBuilder builder = new DefaultCatalogueBuilder(catalogue, classificationService, elementService)
+                    DefaultCatalogueBuilder builder = new DefaultCatalogueBuilder(catalogue, classificationService, elementService, isAdmin)
                     OboLoader loader = new OboLoader(builder)
                     idpattern = idpattern ?: "${grailsApplication.config.grails.serverURL}/catalogue/ext/${OboLoader.OBO_ID}/:id".toString().replace(':id', '$id')
                     loader.load(inputStream, name, idpattern)
