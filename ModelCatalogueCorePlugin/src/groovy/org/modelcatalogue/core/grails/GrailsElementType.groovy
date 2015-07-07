@@ -18,6 +18,7 @@ import org.modelcatalogue.core.security.User
 
 enum GrailsElementType implements ElementType {
 
+    CATALOGUE_ELEMENT("catalogueElement", org.modelcatalogue.core.CatalogueElement),
     ASSET("asset", Asset),
     USER("user", User),
     CLASSIFICATION("classification", Classification),

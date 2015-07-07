@@ -2,13 +2,11 @@ package org.modelcatalogue.core.util.builder
 
 import org.modelcatalogue.builder.api.RelationshipBuilder
 import org.modelcatalogue.builder.api.RelationshipConfiguration
-import org.modelcatalogue.core.Classification
-import org.modelcatalogue.core.DataType
-import org.modelcatalogue.core.EnumeratedType
 import org.modelcatalogue.core.api.CatalogueElement
 import org.modelcatalogue.core.api.ElementType
 import org.modelcatalogue.core.api.RelationshipType
 import org.modelcatalogue.core.grails.GrailsElementType
+import org.modelcatalogue.builder.util.CatalogueBuilderContext
 
 /**
  * RelationshipBuilder is supplementary class to CatalogueBuilder handling part of the DSL dealing with creating
@@ -34,12 +32,12 @@ class DefaultRelationshipBuilder implements RelationshipBuilder {
     /**
      * Hint for the source class to distinguish between elements of the same name but with different type.
      */
-    private Class sourceClassHint
+    private ElementType sourceClassHint
 
     /**
      * Hint for the source class to distinguish between elements of the same name but with different type.
      */
-    private Class destinationClassHint
+    private ElementType destinationClassHint
 
     /**
      * Creates new relationship builder with given context, repository and relationship type.
@@ -74,7 +72,7 @@ class DefaultRelationshipBuilder implements RelationshipBuilder {
      * @param extensions closure defining the metadata
      */
     void to(String name, @DelegatesTo(RelationshipConfiguration) Closure extensions = {}) {
-        context.withContextElement(Classification) {
+        context.withContextElement(GrailsElementType.CLASSIFICATION) {
             to repository.createProxy(getDestinationHintOrClass(), [classification: it.name, name: name]), extensions
         } or {
             to repository.createProxy(getDestinationHintOrClass(), [name: name]), extensions
@@ -154,7 +152,7 @@ class DefaultRelationshipBuilder implements RelationshipBuilder {
     }
 
     void from(String name, @DelegatesTo(RelationshipConfiguration) Closure extensions = {}) {
-        context.withContextElement(Classification) {
+        context.withContextElement(GrailsElementType.CLASSIFICATION) {
             from repository.createProxy(getSourceHintOrClass(), [classification: it.name, name: name]), extensions
         } or {
             from repository.createProxy(getSourceHintOrClass(), [name: name]), extensions
@@ -183,7 +181,7 @@ class DefaultRelationshipBuilder implements RelationshipBuilder {
      */
     DefaultRelationshipBuilder to(ElementType type) {
         if (type instanceof GrailsElementType) {
-            destinationClassHint = type.implementation == EnumeratedType ? DataType : type.implementation
+            destinationClassHint = type == GrailsElementType.ENUMERATED_TYPE ? GrailsElementType.DATA_TYPE : type
         } else {
             throw new IllegalArgumentException("Unsupported keyword: $type")
         }
@@ -198,7 +196,7 @@ class DefaultRelationshipBuilder implements RelationshipBuilder {
      */
     DefaultRelationshipBuilder from(ElementType type) {
         if (type instanceof GrailsElementType) {
-            sourceClassHint = type.implementation == EnumeratedType ? DataType : type.implementation
+            sourceClassHint = type == GrailsElementType.ENUMERATED_TYPE ? GrailsElementType.DATA_TYPE : type
         } else {
             throw new IllegalArgumentException("Unsupported keyword: $type")
         }
@@ -244,15 +242,15 @@ class DefaultRelationshipBuilder implements RelationshipBuilder {
     /**
      * @return hint for the source type - either user supplied or the source class of the relationship type.
      */
-    private Class getSourceHintOrClass(){
-        sourceClassHint ?: type.sourceClass
+    private ElementType getSourceHintOrClass(){
+        sourceClassHint ?: type.sourceType
     }
 
     /*
      * @return hint for the destination type - either user supplied or the destination class of the relationship type.
      */
-    private Class getDestinationHintOrClass() {
-        destinationClassHint ?: type.destinationClass
+    private ElementType getDestinationHintOrClass() {
+        destinationClassHint ?: type.destinationType
     }
 
 }

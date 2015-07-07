@@ -4,6 +4,8 @@ import grails.gorm.DetachedCriteria
 import groovy.util.logging.Log4j
 import org.modelcatalogue.core.*
 import org.modelcatalogue.core.api.ElementStatus
+import org.modelcatalogue.core.api.ElementType
+import org.modelcatalogue.core.grails.GrailsElementType
 import org.modelcatalogue.core.publishing.DraftContext
 import org.modelcatalogue.core.util.ClassificationFilter
 import org.modelcatalogue.core.util.FriendlyErrors
@@ -230,6 +232,12 @@ class CatalogueElementProxyRepository {
         created
     }
 
+    public <T extends CatalogueElement> CatalogueElementProxy<T> createProxy(ElementType domain, Map<String, Object> parameters, boolean underControl = false) {
+        if (domain instanceof GrailsElementType) {
+            return createProxy(domain.implementation, parameters, underControl)
+        }
+        throw new UnsupportedOperationException("Other element types than grails one are not supported. Please use one of GrailsElementType instead of $domain")
+    }
     public <T extends CatalogueElement> CatalogueElementProxy<T> createProxy(Class<T> domain, Map<String, Object> parameters, boolean underControl = false) {
         CatalogueElementProxy<T> proxy = createAbstractionInternal(domain, parameters, underControl)
         pendingProxies << proxy

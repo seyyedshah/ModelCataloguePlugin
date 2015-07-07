@@ -15,6 +15,8 @@ import org.modelcatalogue.core.*
 import org.modelcatalogue.core.CatalogueElement
 import org.modelcatalogue.core.api.ElementStatus
 import org.modelcatalogue.core.api.CatalogueElement as ApiCatalogueElement
+import org.modelcatalogue.builder.util.CatalogueBuilderContext
+import org.modelcatalogue.core.api.CatalogueFactory
 
 
 
@@ -71,17 +73,18 @@ import org.modelcatalogue.core.api.CatalogueElement as ApiCatalogueElement
     DefaultCatalogueBuilder(Catalogue catalogue, ClassificationService classificationService, ElementService elementService) {
         super(catalogue)
         this.repository = new CatalogueElementProxyRepository(classificationService, elementService)
-        this.context = new CatalogueBuilderContext(this)
+        this.context = new CatalogueBuilderContext(catalogue, this, GrailsElementType.CATALOGUE_ELEMENT)
     }
 
     /**
      * Creates new catalogue builder with given classification and element services.
      * @param classificationService classification service
      * @param elementService element service
+     * @deprecated use DefaultCatalogueBuilder(Catalogue, ClassificationService, ElementService)
      */
     DefaultCatalogueBuilder(ClassificationService classificationService, ElementService elementService) {
         this.repository = new CatalogueElementProxyRepository(classificationService, elementService)
-        this.context = new CatalogueBuilderContext(this)
+        this.context = new CatalogueBuilderContext(CatalogueFactory.catalogue, this, GrailsElementType.CATALOGUE_ELEMENT)
     }
 
     /**
@@ -144,7 +147,7 @@ import org.modelcatalogue.core.api.CatalogueElement as ApiCatalogueElement
      * @return proxy to data element specified by the parameters map and the DSL closure
      */
     void dataElement(Map<String, Object> parameters, @DelegatesTo(CatalogueBuilder) Closure c = {}) {
-        CatalogueElementProxy<DataElement> element = createProxy(DataElement, parameters, Model, true)
+        CatalogueElementProxy<DataElement> element = createProxy(DataElement, parameters, GrailsElementType.MODEL, true)
 
         context.withNewContext element, c
 
@@ -154,7 +157,7 @@ import org.modelcatalogue.core.api.CatalogueElement as ApiCatalogueElement
             }
         }
 
-        context.withContextElement(Model) { ignored, Closure relConf ->
+        context.withContextElement(GrailsElementType.MODEL) { ignored, Closure relConf ->
             contains element, relConf
         }
 
@@ -173,10 +176,10 @@ import org.modelcatalogue.core.api.CatalogueElement as ApiCatalogueElement
      * @return proxy to model specified by the parameters map and the DSL closure
      */
     void model(Map<String, Object> parameters, @DelegatesTo(CatalogueBuilder) Closure c = {}) {
-        CatalogueElementProxy<Model> model = createProxy(Model, parameters, Classification, true)
+        CatalogueElementProxy<Model> model = createProxy(Model, parameters, GrailsElementType.CLASSIFICATION, true)
 
         context.withNewContext model, c
-        context.withContextElement(Model) { ignored, Closure relConf ->
+        context.withContextElement(GrailsElementType.MODEL) { ignored, Closure relConf ->
             child model, relConf
         }
 
@@ -198,11 +201,11 @@ import org.modelcatalogue.core.api.CatalogueElement as ApiCatalogueElement
      * @return proxy to value domain specified by the parameters map and the DSL closure
      */
     void valueDomain(Map<String, Object> parameters = [:], @DelegatesTo(CatalogueBuilder) Closure c = {}) {
-        CatalogueElementProxy<ValueDomain> domain = createProxy(ValueDomain, parameters, DataElement, true)
+        CatalogueElementProxy<ValueDomain> domain = createProxy(ValueDomain, parameters, GrailsElementType.DATA_ELEMENT, true)
 
         context.withNewContext domain, c
 
-        context.withContextElement(DataElement) {
+        context.withContextElement(GrailsElementType.DATA_ELEMENT) {
             it.setParameter('valueDomain', domain)
         }
 
@@ -227,11 +230,11 @@ import org.modelcatalogue.core.api.CatalogueElement as ApiCatalogueElement
         if (parameters.containsKey('enumerations') && !parameters.enumerations) {
             parameters.remove('enumerations')
         }
-        CatalogueElementProxy<? extends DataType> dataType = createProxy(type, parameters, ValueDomain, true)
+        CatalogueElementProxy<? extends DataType> dataType = createProxy(type, parameters, GrailsElementType.VALUE_DOMAIN, true)
 
         context.withNewContext dataType, c
 
-        context.withContextElement(ValueDomain) {
+        context.withContextElement(GrailsElementType.VALUE_DOMAIN) {
             it.setParameter('dataType', dataType)
         }
 
@@ -251,7 +254,7 @@ import org.modelcatalogue.core.api.CatalogueElement as ApiCatalogueElement
 
         context.withNewContext unit, c
 
-        context.withContextElement(ValueDomain) {
+        context.withContextElement(GrailsElementType.VALUE_DOMAIN) {
             it.setParameter('unitOfMeasure', unit)
         }
 
@@ -368,7 +371,7 @@ import org.modelcatalogue.core.api.CatalogueElement as ApiCatalogueElement
      * @see RelationshipConfiguration
      */
     void basedOn(String classification, String name, @DelegatesTo(RelationshipConfiguration) Closure extensions = {}) {
-        context.withContextElement(CatalogueElement) {
+        context.withContextElement(GrailsElementType.CATALOGUE_ELEMENT) {
             rel "base" from GrailsElementType.getType(it.domain) called classification, name, extensions
         }
     }
@@ -385,7 +388,7 @@ import org.modelcatalogue.core.api.CatalogueElement as ApiCatalogueElement
      * @see #globalSearchFor(ElementType)
      */
     void basedOn(String name, @DelegatesTo(RelationshipConfiguration) Closure extensions = {}) {
-        context.withContextElement(CatalogueElement) {
+        context.withContextElement(GrailsElementType.CATALOGUE_ELEMENT) {
             rel "base" from GrailsElementType.getType(it.domain) called name, extensions
         }
     }
@@ -460,7 +463,7 @@ import org.modelcatalogue.core.api.CatalogueElement as ApiCatalogueElement
      */
     @Deprecated
     void status(ElementStatus status) {
-        context.withContextElement(CatalogueElement) {
+        context.withContextElement(GrailsElementType.CATALOGUE_ELEMENT) {
             it.setParameter('status', status)
         } or {
             throw new IllegalStateException("No element to set status on")
@@ -477,7 +480,7 @@ import org.modelcatalogue.core.api.CatalogueElement as ApiCatalogueElement
      * @param value metadata value
      */
     void ext(String key, String value) {
-        context.withContextElement(CatalogueElement) {
+        context.withContextElement(GrailsElementType.CATALOGUE_ELEMENT) {
             it.setExtension(key, value)
         } or {
             throw new IllegalStateException("No element to set ext on")
@@ -590,7 +593,7 @@ import org.modelcatalogue.core.api.CatalogueElement as ApiCatalogueElement
         if (Classification.isAssignableFrom(element.domain)) {
             return
         }
-        context.withContextElement(Classification) {
+        context.withContextElement(GrailsElementType.CLASSIFICATION) {
             element.addToPendingRelationships(new RelationshipProxy('classification', it, element, [:]))
         }
     }
@@ -610,7 +613,7 @@ import org.modelcatalogue.core.api.CatalogueElement as ApiCatalogueElement
         if (!value) {
             return
         }
-        context.withContextElement(CatalogueElement) {
+        context.withContextElement(GrailsElementType.CATALOGUE_ELEMENT) {
             it.setParameter(name, value?.stripIndent()?.trim())
         } or {
             throw new IllegalStateException("No element to set string value '$name'")
@@ -640,7 +643,7 @@ import org.modelcatalogue.core.api.CatalogueElement as ApiCatalogueElement
      * @param inheritFrom class from which the name and description should be inherited
      * @return proxy for given configuration.
      */
-    protected <T extends CatalogueElement, A extends CatalogueElementProxy<T>> A createProxy(Class<T> domain, Map<String, Object> parameters, Class inheritFrom = null, boolean underControl = false) {
+    protected <T extends CatalogueElement, A extends CatalogueElementProxy<T>> A createProxy(Class<T> domain, Map<String, Object> parameters, ElementType inheritFrom = null, boolean underControl = false) {
         if (inheritFrom && domain in SUPPORTED_FOR_AUTO) {
             context.withContextElement(inheritFrom) {
                 if (!parameters.name) {
