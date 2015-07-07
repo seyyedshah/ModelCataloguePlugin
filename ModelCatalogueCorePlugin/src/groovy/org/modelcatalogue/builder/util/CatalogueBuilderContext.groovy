@@ -1,6 +1,6 @@
 package org.modelcatalogue.builder.util
 
-
+import groovy.transform.CompileStatic
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.FromString
 import org.modelcatalogue.builder.api.CatalogueBuilder
@@ -9,9 +9,8 @@ import org.modelcatalogue.core.api.Catalogue
 import org.modelcatalogue.core.api.CatalogueElement
 import org.modelcatalogue.core.api.ElementType
 import org.modelcatalogue.core.repository.api.SortAndPaginationOptions
-import org.modelcatalogue.core.util.builder.DefaultWithOptionalOrClause
-import org.modelcatalogue.core.util.builder.WithOptionalOrClause
 
+@CompileStatic
 class CatalogueBuilderContext {
 
     private List<Map<ElementType, ContextItem>> contexts = []
@@ -83,7 +82,7 @@ class CatalogueBuilderContext {
         if (!contextElement) {
             return contextElement
         }
-        ContextItem item = new ContextItem(element: contextElement)
+        ContextItem item = new ContextItem(contextElement, null)
         for (ElementType type in catalogue.elementTypeRepository.list(SortAndPaginationOptions.noOptions()).items) {
             if (type.isInstanceOf(contextElement)) {
                 contexts.last()[type] = item

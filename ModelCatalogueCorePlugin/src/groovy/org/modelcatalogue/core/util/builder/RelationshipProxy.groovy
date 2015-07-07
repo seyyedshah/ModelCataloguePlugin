@@ -1,12 +1,13 @@
 package org.modelcatalogue.core.util.builder
 
-import groovy.util.logging.Log4j
+import groovy.transform.CompileStatic
+import groovy.util.logging.Log
 import org.modelcatalogue.core.CatalogueElement
 import org.modelcatalogue.core.Relationship
 import org.modelcatalogue.builder.api.RelationshipConfiguration
 import org.modelcatalogue.core.util.FriendlyErrors
 
-@Log4j
+@Log @CompileStatic
 class RelationshipProxy<T extends CatalogueElement, U extends CatalogueElement> {
 
     final String relationshipTypeName
@@ -44,7 +45,7 @@ class RelationshipProxy<T extends CatalogueElement, U extends CatalogueElement> 
         try {
             Relationship relationship = repository.resolveRelationship(this)
             if (relationship.hasErrors()) {
-                log.error(FriendlyErrors.printErrors("Cannot create relationship of type  $relationshipTypeName between $source and $destination", relationship.errors))
+                log.warning(FriendlyErrors.printErrors("Cannot create relationship of type  $relationshipTypeName between $source and $destination", relationship.errors))
                 throw new IllegalStateException("Cannot create relationship of type $relationshipTypeName between $source and $destination.")
             }
             if (extensions) {
