@@ -6,6 +6,7 @@ import org.custommonkey.xmlunit.Diff
 import org.custommonkey.xmlunit.XMLUnit
 import org.modelcatalogue.core.*
 import org.modelcatalogue.builder.api.CatalogueBuilder
+import org.modelcatalogue.core.api.Catalogue
 import org.modelcatalogue.core.util.builder.DefaultCatalogueBuilder
 import org.modelcatalogue.core.xml.CatalogueXmlPrinter
 import spock.lang.Ignore
