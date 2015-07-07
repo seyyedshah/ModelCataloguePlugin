@@ -1,5 +1,6 @@
 package org.modelcatalogue.core
 
+import grails.util.Holders
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import org.modelcatalogue.builder.api.CatalogueBuilder
@@ -15,7 +16,7 @@ class AssetWizardSpec extends AbstractModelCatalogueGebSpec {
 
     @Rule TemporaryFolder tmp = new TemporaryFolder()
 
-    Catalogue catalogue
+    Catalogue catalogue = Holders.applicationContext.getBean(Catalogue)
 
     def "go to login"() {
         go "#/"
