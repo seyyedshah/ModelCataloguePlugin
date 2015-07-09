@@ -3,10 +3,13 @@ package org.modelcatalogue.core.util.builder
 import grails.gorm.DetachedCriteria
 import groovy.util.logging.Log4j
 import org.modelcatalogue.core.*
+import org.modelcatalogue.core.api.Catalogue
 import org.modelcatalogue.core.api.ElementStatus
 import org.modelcatalogue.core.api.ElementType
 import org.modelcatalogue.core.grails.GrailsElementType
 import org.modelcatalogue.core.publishing.DraftContext
+import org.modelcatalogue.core.repository.api.CatalogueElementRepository
+import org.modelcatalogue.core.repository.api.CatalogueElementsPartialResult
 import org.modelcatalogue.core.util.ClassificationFilter
 import org.modelcatalogue.core.util.FriendlyErrors
 import org.springframework.util.StopWatch
@@ -14,13 +17,9 @@ import org.springframework.util.StopWatch
 @Log4j
 class CatalogueElementProxyRepository {
 
-    static Set<Class> HAS_UNIQUE_NAMES = [MeasurementUnit, Classification]
     static final String AUTOMATIC_NAME_FLAG = '__automatic_name__'
     static final String AUTOMATIC_DESCRIPTION_FLAG = '__automatic_description__'
     private static final Map LATEST = [sort: 'versionNumber', order: 'desc', max: 1]
-
-    private final ClassificationService classificationService
-    private final ElementService elementService
 
     Set<Class> unclassifiedQueriesFor = []
 
@@ -32,9 +31,10 @@ class CatalogueElementProxyRepository {
 
     private final Map<String, Relationship> createdRelationships = [:]
 
-    CatalogueElementProxyRepository(ClassificationService classificationService, ElementService elementService) {
-        this.classificationService = classificationService
-        this.elementService = elementService
+    private final Catalogue catalogue
+
+    CatalogueElementProxyRepository(Catalogue catalogue) {
+        this.catalogue = catalogue
     }
 
     public void clear() {
@@ -53,7 +53,7 @@ class CatalogueElementProxyRepository {
         this.copyRelationships
     }
 
-    public static boolean equals(CatalogueElementProxy a, CatalogueElementProxy b) {
+    public boolean equals(CatalogueElementProxy a, CatalogueElementProxy b) {
         if (a == b) {
             return true
         }
@@ -63,10 +63,10 @@ class CatalogueElementProxyRepository {
         if (a.modelCatalogueId && a.modelCatalogueId == b.modelCatalogueId) {
             return true
         }
-        if (a.domain != b.domain) {
+        if (a.elementType != b.elementType) {
             return false
         }
-        if (a.domain in HAS_UNIQUE_NAMES) {
+        if (a.elementType in catalogue.elementTypeRepository.typesWithUniqueNames) {
             return a.name == b.name
         }
 
@@ -98,8 +98,8 @@ class CatalogueElementProxyRepository {
                     existing.merge(proxy)
                 }
             } else if (proxy.name) {
-                String fullName = "${proxy.domain.simpleName}:${proxy.domain in HAS_UNIQUE_NAMES ? '*' : proxy.classification}:${proxy.name}"
-                String genericName = "${CatalogueElement.simpleName}:${proxy.domain in HAS_UNIQUE_NAMES ? '*' : proxy.classification}:${proxy.name}"
+                String fullName = "${proxy.domain.simpleName}:${proxy.elementType in catalogue.elementTypeRepository.typesWithUniqueNames ? '*' : proxy.classification}:${proxy.name}"
+                String genericName = "${CatalogueElement.simpleName}:${proxy.elementType in catalogue.elementTypeRepository.typesWithUniqueNames ? '*' : proxy.classification}:${proxy.name}"
 
                 CatalogueElementProxy existing = byName[fullName]
 
@@ -306,7 +306,8 @@ class CatalogueElementProxyRepository {
         }
 
         if (classifications) {
-            T result = getLatestFromCriteria(classificationService.classified(criteria, ClassificationFilter.includes(classifications)))
+            // by name and classification
+            T result = getLatest(classificationService.classified(criteria, ClassificationFilter.includes(classifications)))
 
             if (result) {
                 if (!id || !result.modelCatalogueId) {
@@ -321,7 +322,8 @@ class CatalogueElementProxyRepository {
             }
         }
 
-        T result = getLatestFromCriteria(criteria, true)
+        // by name
+        T result = getLatest(criteria, true)
 
         // nothing found
         if (!result) {
@@ -346,7 +348,8 @@ class CatalogueElementProxyRepository {
         DetachedCriteria<T> criteria = new DetachedCriteria<T>(type).build {
             eq 'modelCatalogueId', id.toString()
         }
-        T result = getLatestFromCriteria(criteria)
+        // by catalogue id
+        T result = getLatest(criteria)
 
         if (result) {
             return result
@@ -382,15 +385,15 @@ class CatalogueElementProxyRepository {
         return null
     }
 
-    private static <T extends CatalogueElement> T getLatestFromCriteria(DetachedCriteria<T> criteria, boolean unclassifiedOnly = false) {
+    private org.modelcatalogue.core.api.CatalogueElement getLatest(CatalogueElementsPartialResult results, boolean unclassifiedOnly = false) {
         Map<String, Object> params = unclassifiedOnly ? LATEST - [max: 1] : LATEST
-        List<T> elements = criteria.list(params)
+        List<org.modelcatalogue.core.api.CatalogueElement> elements = results.items
         if (elements) {
-            if (!unclassifiedOnly || criteria.persistentEntity.javaClass in HAS_UNIQUE_NAMES) {
+            if (!unclassifiedOnly || results.elementType in catalogue.elementTypeRepository.typesWithUniqueNames) {
                 return elements.first()
             }
-            for (T element in elements) {
-                if (!element.classifications) {
+            for (org.modelcatalogue.core.api.CatalogueElement element in elements) {
+                if (!element.namespaces) {
                     return element
                 }
             }

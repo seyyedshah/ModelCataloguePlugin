@@ -6,8 +6,21 @@ import org.modelcatalogue.core.repository.api.ElementTypeRepository
 import org.modelcatalogue.core.repository.api.PartialResult
 import org.modelcatalogue.core.repository.api.CatalogueElementRepository
 import org.modelcatalogue.core.repository.api.SortAndPaginationOptions
+import org.modelcatalogue.core.repository.api.StringIdentifier
 
 class GrailsElementTypeRepository implements ElementTypeRepository {
+
+    private static final Set<ElementType> TYPES_WITH_UNIQUE_NAMES = Collections.unmodifiableSet(new HashSet([GrailsElementType.CLASSIFICATION, GrailsElementType.MEASUREMENT_UNIT]))
+
+    @Override
+    ElementType getDefaultElementType() {
+        return GrailsElementType.CATALOGUE_ELEMENT
+    }
+
+    @Override
+    Set<ElementType> getTypesWithUniqueNames() {
+        return TYPES_WITH_UNIQUE_NAMES
+    }
 
     @Override
     CatalogueElementRepository getCatalogueElementRepository(ElementType type) {

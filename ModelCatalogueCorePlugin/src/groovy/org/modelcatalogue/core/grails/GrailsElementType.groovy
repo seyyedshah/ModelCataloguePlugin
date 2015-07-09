@@ -82,6 +82,11 @@ enum GrailsElementType implements ElementType {
     }
 
     @Override
+    boolean isUnique() {
+        return this in [CLASSIFICATION, MEASUREMENT_UNIT]
+    }
+
+    @Override
     boolean isInstanceOf(CatalogueElement element) {
         implementation.isAssignableFrom(NAMES_TO_TYPES[element.elementType.name]?.implementation)
     }
