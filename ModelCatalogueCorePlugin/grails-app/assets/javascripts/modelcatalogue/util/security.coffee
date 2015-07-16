@@ -120,8 +120,8 @@ angular.module('mc.util.security', ['http-auth-interceptor', 'mc.util.messages',
             result
 
 
-        forgotPassword: (username)->
-          params = {username:username}
+        forgotPassword: (username,email)->
+          params = {username:username,email:email}
           $http(
             method: httpMethod,
             url: forgotPasswordUrl,

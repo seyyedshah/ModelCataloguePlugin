@@ -75,7 +75,7 @@
                 <div class="panel panel-default">
                     <!-- Default panel contents -->
                     <div class="panel-heading">
-                        <g:message code='spring.security.ui.resetPassword.title'/>
+                        <strong> <g:message code='spring.security.ui.resetPassword.title'/></strong>
                     </div>
 
                     <div class="panel-body">
@@ -99,9 +99,9 @@
                                 </div>
 
                                 <div class="form-group">
-                                    <label for="password2">Password(again)</label>
+                                    <label for="password2">Confirm Password</label>
                                     <input type="password" class="form-control" id="password2" name='password2'
-                                           placeholder="Password(again)" value="${command?.password2}"
+                                           placeholder="Confirm Password" value="${command?.password2}"
                                            ng-model="password2">
                                 </div>
 

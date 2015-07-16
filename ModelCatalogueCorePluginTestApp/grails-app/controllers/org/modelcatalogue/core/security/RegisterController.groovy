@@ -156,14 +156,21 @@ class RegisterController extends grails.plugin.springsecurity.ui.RegisterControl
 
 		def msg
 		String username = command.username
+		String email = command.email
 		if (!username) {
 			msg = message(code: 'spring.security.ui.forgotPassword.username.missing')
 			render([success: false, error:msg] as JSON)
 			return
 		}
 
+		if (!email) {
+			msg = message(code: 'spring.security.ui.forgotPassword.email.missing')
+			render([success: false, error:msg] as JSON)
+			return
+		}
+
 		String usernameFieldName = SpringSecurityUtils.securityConfig.userLookup.usernamePropertyName
-		def user = lookupUserClass().findWhere((usernameFieldName): username)
+		def user = lookupUserClass().findWhere((usernameFieldName): username, email:email)
 		if (!user) {
 			msg = message(code: 'spring.security.ui.forgotPassword.user.notFound')
 			render([success: false, error:msg] as JSON)
@@ -269,6 +276,7 @@ class RegisterController extends grails.plugin.springsecurity.ui.RegisterControl
 
 class ForgotPasswordCommand {
 	String username
+	String email
 }
 
 class RegisterCommand {
