@@ -175,17 +175,17 @@ angular.module('mc.core.ui.bs.navigationActions', ['mc.util.ui.actions', 'mc.uti
     action
   ]
 
-  actionsProvider.registerChildAction 'navbar-account', 'navbar-admin', ['security','$scope', '$state','messages','$window','$location', (security,$scope, $state,messages,$window,$location) ->
-    return undefined if not security.hasRole('ADMIN')
-    action = {
-      position:    400
-      label:      'Users & Roles'
-      icon:   'fa fa-users'
-      action: ->
-        $window.location.href = "userAdmin";
-    }
-    action
-  ]
+#  actionsProvider.registerChildAction 'navbar-account', 'navbar-admin', ['security','$scope', '$state','messages','$window','$location', (security,$scope, $state,messages,$window,$location) ->
+#    return undefined if not security.hasRole('ADMIN')
+#    action = {
+#      position:    400
+#      label:      'Users & Roles'
+#      icon:   'fa fa-users'
+#      action: ->
+#        $window.location.href = "userAdmin";
+#    }
+#    action
+#  ]
 
 
   toggleClassification = (global) -> ['security', 'messages', '$scope', 'rest', 'enhance', 'modelCatalogueApiRoot', '$state', '$stateParams', (security, messages, $scope, rest, enhance, modelCatalogueApiRoot, $state, $stateParams) ->
