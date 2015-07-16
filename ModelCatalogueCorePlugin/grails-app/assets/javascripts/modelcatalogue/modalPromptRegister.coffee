@@ -13,14 +13,14 @@ angular.module('mc.core.ui.bs.modalPromptRegister', ['mc.util.messages', 'ngCook
 
 
                   <div class="form-group">
-                    <label for="firstName">First Name</label>
+                    <label for="firstName">First Name*</label>
                     <input type="text" class="form-control" id="firstName" placeholder="FirstName" ng-model="user.firstName">
                   </div>
 
 
 
                   <div class="form-group">
-                    <label for="lastName">LastName</label>
+                    <label for="lastName">LastName*</label>
                     <input type="text" class="form-control" id="lastName" placeholder="LastName" ng-model="user.lastName">
                   </div>
 
@@ -56,7 +56,7 @@ angular.module('mc.core.ui.bs.modalPromptRegister', ['mc.util.messages', 'ngCook
             </form>
         </div>
         <div class="modal-footer">
-            <button type="submit" class="btn btn-success" ng-click="change()" ng-disabled="!user.password || !user.password2 || !user.username || !user.email"><span class="glyphicon glyphicon-ok"></span> Save</button>
+            <button type="submit" class="btn btn-success" ng-click="change()" ng-disabled="!user.password || !user.password2 || !user.username || !user.email || !user.firstName || !user.lastName"><span class="glyphicon glyphicon-ok"></span> Save</button>
             <button class="btn btn-warning" ng-click="$dismiss()">Cancel</button>
         </div>
         '''
