@@ -140,17 +140,14 @@ environments {
         grails.serverURL =  "http://localhost:${System.getProperty('server.port') ?: 8080}/ModelCatalogueCorePluginTestApp"
     }
     production {
-
-		grails.mail {
-			host = System.env.MC_MAIL_HOST ?: 'smtp.gmail.com'
-			port = System.env.MC_MAIL_PORT ?: 587
-			username = System.env.MC_MAIL_USER ?: ''
-			password = System.env.MC_MAIL_PASS ?: ''
-			props = ["mail.smtp.auth": "true",
-					 "mail.smtp.socketFactory.port": "465",
-					 "mail.smtp.socketFactory.class": "javax.net.ssl.SSLSocketFactory",
-					 "mail.smtp.socketFactory.fallback": "false"]
-		}
+		grails.mail.host = System.env.MC_MAIL_HOST ?: 'smtp.gmail.com'
+		grails.mail.port = System.env.MC_MAIL_PORT ?: 587
+		grails.mail.username = System.env.MC_MAIL_USER ?: ''
+		grails.mail.password = System.env.MC_MAIL_PASS ?: ''
+		grails.mail.props = ["mail.smtp.auth": "true",
+							 "mail.smtp.socketFactory.port": "465",
+							 "mail.smtp.socketFactory.class": "javax.net.ssl.SSLSocketFactory",
+							 "mail.smtp.socketFactory.fallback": "false"]
 
         grails.assets.minifyOptions = [
                 strictSemicolons: false,
