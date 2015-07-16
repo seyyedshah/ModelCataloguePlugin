@@ -8,6 +8,10 @@
 #= require google-diff-match-patch/javascript/diff_match_patch
 #= require angular-diff-match-patch.js
 
+#= require modalPromptChangePassword
+#= require modalPromptRegister
+#= require modalPromptForgotPassword
+
 #= require_self
 #= require_full_tree .
 
@@ -15,6 +19,9 @@ modules = [
   'ui.bootstrap'
   'angular-loading-bar'
   'ngAnimate'
+  'mc.core.ui.bs.modalPromptChangePassword'
+  'mc.core.ui.bs.modalPromptRegister'
+  'mc.core.ui.bs.modalPromptForgotPassword'
 ]
 
 modelcatalogue =
