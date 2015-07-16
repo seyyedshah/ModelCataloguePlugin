@@ -15,8 +15,8 @@ angular.module('mc.core.ui.bs.modalPromptChangePassword', ['mc.util.messages', '
                 <input type="password" class="form-control" id="password" placeholder="Password" ng-model="user.password">
               </div>
               <div class="form-group">
-                <label for="password2">Password (again)</label>
-                <input type="password" class="form-control" id="password2" placeholder="Password2" ng-model="user.password2">
+                <label for="password2">Confirm Password</label>
+                <input type="password" class="form-control" id="password2" placeholder="Confirm Password" ng-model="user.password2">
               </div>
               <button type="submit" class="hide" ng-click="change()"></button>
             </form>
