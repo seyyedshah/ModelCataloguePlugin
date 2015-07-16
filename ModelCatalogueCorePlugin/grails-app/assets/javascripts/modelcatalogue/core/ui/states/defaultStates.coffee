@@ -1,5 +1,20 @@
 angular.module('mc.core.ui.states.defaultStates', ['ui.router', 'mc.util.ui'])
 
+
+.controller('defaultStates.registerCtrl', ['$scope', 'security', 'messages', ($scope, security,messages)->
+  $scope.register = ->
+    messages.prompt('register', null, type: 'register')
+
+  $scope.forgotPassword = ->
+    messages.prompt('forgot-password', null, type: 'forgot-password')
+])
+
+
+.controller('defaultStates.changePasswordCtrl', ['messages', '$scope', (messages, $scope)->
+  $scope.changePassword = ->
+    messages.prompt('change-password', null, type: 'change-password')
+])
+
 .controller('mc.core.ui.states.DashboardCtrl', ['$rootScope', '$scope', '$stateParams', '$state', 'security', 'catalogue', 'modelCatalogueApiRoot', 'user', 'messages', 'applicationTitle', 'names', 'statistics', ($rootScope, $scope, $stateParams, $state, security, catalogue, modelCatalogueApiRoot, user, messages, applicationTitle, names, statistics) ->
     applicationTitle "Model Catalogue"
 
