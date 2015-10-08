@@ -62,6 +62,8 @@ grails.project.dependency.resolution = {
 
         compile 'org.jsoup:jsoup:1.8.3'
 
+        compile 'net.sourceforge.owlapi:owlapi-distribution:3.5.1'
+
         test 'xmlunit:xmlunit:1.6'
         test "org.grails:grails-datastore-test-support:1.0.2-grails-2.4"
 		 
@@ -97,6 +99,7 @@ grails.project.dependency.resolution = {
 
         build ":tomcat:7.0.55"
 		//jasper report generator see in dependencies
+
 
     }
 }

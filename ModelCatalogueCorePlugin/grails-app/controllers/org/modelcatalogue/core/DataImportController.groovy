@@ -23,6 +23,7 @@ class DataImportController  {
     def classificationService
     def assetService
     def auditService
+    def owlService
 
 
     private static final CONTENT_TYPES = ['application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/octet-stream', 'application/xml', 'text/xml']
@@ -202,6 +203,38 @@ class DataImportController  {
             redirectToAsset(id)
             return
         }
+
+        if (file.size > 0 && (file.originalFilename.endsWith(".owl") || file.originalFilename.endsWith(".ttl"))) {
+            def asset = storeAsset(params, file, 'text/turtle')
+            def id = asset.id
+            InputStream inputStream = file.inputStream
+            String name = params?.name
+
+            executeInBackground(id, "Imported from OWL")  {
+                try {
+                    Classification classification = Classification.findByName(name)
+                    if(!classification) classification =  new Classification(name: name).save(flush:true, failOnError:true)
+                    owlService.importOwlOntology(inputStream, name, classification)
+                    Asset updated = Asset.get(id)
+                    updated.status = ElementStatus.FINALIZED
+                    updated.description = "Your import has finished."
+                    updated.save(flush: true, failOnError: true)
+                    updated.addToClassifications(classification, skipUniqueChecking: true)
+                    classification.addToClassifies(updated, skipUniqueChecking: true)
+                } catch (Exception e) {
+                    Asset updated = Asset.get(id)
+                    updated.refresh()
+                    updated.status = ElementStatus.FINALIZED
+                    updated.name = updated.name + " - Error during upload"
+                    updated.description = "Error importing owl file: ${e}"
+                    updated.save(flush: true, failOnError: true)
+                }
+            }
+
+            redirectToAsset(id)
+            return
+        }
+
 
 
         if (CONTENT_TYPES.contains(confType) && file.size > 0 && file.originalFilename.contains(".xsd")) {

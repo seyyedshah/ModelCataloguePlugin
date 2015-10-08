@@ -122,6 +122,14 @@ angular.module('mc.core.ui.bs.actions', ['mc.util.ui.actions']).config ['actions
   actionsProvider.registerChildAction 'new-import', 'import-umlj', umlImport
   actionsProvider.registerActionInRole 'global-import-uml', actionsProvider.ROLE_GLOBAL_ACTION, umlImport
 
+  owlImport = ['$scope', 'messages', ($scope, messages) -> {
+  label: "Import OWL"
+  action: ->
+    messages.prompt('Import OWL File', '', type: 'new-owl-import')
+  }]
+  actionsProvider.registerChildAction 'new-import', 'import-owl', owlImport
+  actionsProvider.registerActionInRole 'global-import-owl', actionsProvider.ROLE_GLOBAL_ACTION, owlImport
+
   mcImport = ['$scope', 'messages', ($scope, messages) -> {
     label: "Import MC"
     action: ->
