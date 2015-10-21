@@ -26,14 +26,20 @@ class OwlService {
 
     def  classificationService, elementService
 
-    private HashMap<OWLClass,Model> classModels = new HashMap<OWLClass,Model>();
-
+    OWLAnnotationProperty labels
+    OWLAnnotationProperty comments
     static transactional = false
 
     protected importOwlOntology(FileInputStream is, String name, Classification classification) {
+        //oen file with OWLAPI
         println( "Parsing Owl file for "+name)
         OWLOntologyManager m = OWLManager.createOWLOntologyManager();
         OWLOntology owlOntology = m.loadOntologyFromOntologyDocument(is);
+        //setup basic annotations
+        OWLDataFactory df = owlOntology.getOWLOntologyManager().getOWLDataFactory();
+        labels = df.getRDFSLabel();
+        comments = df.getRDFSComment();
+
 
         generateCatalogueElements(owlOntology, classification)
     }
@@ -45,52 +51,69 @@ class OwlService {
         CatalogueBuilder builder = new DefaultCatalogueBuilder(classificationService, elementService)
         builder.build {
             classification(name: clsf.name) {
-                model(name: clsf.name){
-                    for (OWLClass oc: owlOntology.getClassesInSignature()){
-                        createClass(builder, oc, owlOntology)
-                    }
+                for (OWLClass oc: owlOntology.getClassesInSignature()) {
+                    createClass(builder, oc, owlOntology)
                 }
             }
         }
 
     }
 
-     protected createClass(CatalogueBuilder builder, OWLClass cls, OWLOntology owlOntology) {
+
+
+    protected createClass(CatalogueBuilder builder, OWLClass cls, OWLOntology owlOntology) {
         println("Outputting model: " + cls.getSignature())
 
-         String label = cls.getIRI();
-         String comment = "";
 
-         OWLDataFactory df = owlOntology.getOWLOntologyManager().getOWLDataFactory();
-         OWLAnnotationProperty labels = df.getRDFSLabel();
-         OWLAnnotationProperty comments = df.getRDFSComment();
+        String comment = this.extractAnnotationString(cls, owlOntology, comments);
+        String label = this.extractAnnotationString(cls, owlOntology, labels);
+        if (label.length() == 0) label = cls.getIRI();
 
-         for (OWLAnnotation an :cls.getAnnotations(owlOntology, labels))
-             label = an.getValue() ;
 
-         for (OWLAnnotation an :cls.getAnnotations(owlOntology, comments))
-             comment = an.getValue() ;
+         builder.model(name: label, description: comment, id: cls.getIRI()) {
 
-         //create subclass relationships
-         builder.model(name: label.replaceAll (/"/, ''), description: comment.replaceAll (/"/, '')) {
-             for (OWLClassExpression subclass : cls.getSubClasses(owlOntology)){
-                  label = subclass.getIRI();
-                  comment = "";
-                 for (OWLAnnotation an :subclass.getAnnotations(owlOntology, labels))
-                     label = an.getValue() ;
+             //create subclass relationships
+             for(OWLClassExpression subclass : cls.getSubClasses(owlOntology))
+                 createClass(builder, subclass, owlOntology);
 
-                 for (OWLAnnotation an :subclass.getAnnotations(owlOntology, comments))
-                     comment = an.getValue() ;
+             //create attributes
+             for(OWLObjectProperty oop: owlOntology.getObjectPropertiesInSignature()){
+                 for (OWLClassExpression domain :oop.getDomains(owlOntology)){
+                     if(domain.compareTo(cls)==0){
 
-                 model(name: label.replaceAll (/"/, ''), description: comment.replaceAll (/"/, ''))
+                         label = this.extractAnnotationString(oop, owlOntology, labels);
+                         comment = this.extractAnnotationString(oop, owlOntology, comments);
+                         if (label.length() == 0) label = oop.getIRI();
+
+                         //to do, use range
+                         println("Outputting Element: " + label )
+
+                         dataElement(name: label, description: comment, id: oop.getIRI()) {
+
+                             builder.valueDomain(name: "xs:string") {
+                                 dataType(name: "xs:string")
+                             }
+                         }
+
+                     }
+                 }
              }
 
-         }
-         //create relationships
 
-         //create attributes
+             //create relationships
+         }
+
 
      }
+
+    private static String extractAnnotationString(OWLEntity oe, OWLOntology owlOntology, OWLAnnotationProperty prop){
+        String str = "";
+
+        for (OWLAnnotation an :oe.getAnnotations(owlOntology, prop))
+            str = an.getValue() ;
+
+        return str.replaceAll (/"/, '');
+    }
 
 
     static createValueDomain(CatalogueBuilder builder, LazyMap att, OWLOntology owlFile) {
